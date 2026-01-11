@@ -10,7 +10,7 @@ updates:
       timezone: "America/New_York"
     open-pull-requests-limit: 10
     reviewers:
-      - "krosebook"
+      - "Krosebrook"
     commit-message:
       prefix: "deps"
     labels:
@@ -41,7 +41,7 @@ updates:
       interval: "weekly"
       day: "monday"
     reviewers:
-      - "krosebook"
+      - "Krosebrook"
     commit-message:
       prefix: "ci"
     labels:

@@ -1,20 +1,20 @@
 # Default owner for everything
-* @krosebook
+* @Krosebrook
 
 # Frontend components
-/components/ @krosebook
-/app/ @krosebook
+/components/ @Krosebrook
+/app/ @Krosebrook
 
 # Backend/API
-/app/api/ @krosebook
-/lib/ @krosebook
+/app/api/ @Krosebrook
+/lib/ @Krosebrook
 
 # Database
-/supabase/ @krosebook
+/supabase/ @Krosebrook
 
 # CI/CD and DevOps
-/.github/ @krosebook
-/vercel.json @krosebook
+/.github/ @Krosebrook
+/vercel.json @Krosebrook
 
 # Documentation
-*.md @krosebook
+*.md @Krosebrook
