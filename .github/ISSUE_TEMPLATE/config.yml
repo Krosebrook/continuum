@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Questions & Discussions
+    url: https://github.com/krosebook/continuum/discussions
+    about: Ask questions and discuss ideas
+  - name: Documentation
+    url: https://github.com/krosebook/continuum#readme
+    about: Read the documentation

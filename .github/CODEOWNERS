@@ -1,0 +1,20 @@
+# Default owner for everything
+* @krosebook
+
+# Frontend components
+/components/ @krosebook
+/app/ @krosebook
+
+# Backend/API
+/app/api/ @krosebook
+/lib/ @krosebook
+
+# Database
+/supabase/ @krosebook
+
+# CI/CD and DevOps
+/.github/ @krosebook
+/vercel.json @krosebook
+
+# Documentation
+*.md @krosebook
