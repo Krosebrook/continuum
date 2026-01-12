@@ -150,23 +150,28 @@ continuum/
 
 ## Troubleshooting
 
-### "Supabase configuration missing"
+For detailed troubleshooting, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+### Quick Fixes
+
+**"Supabase configuration missing"**
 - Check that `.env.local` has all required values
-- Restart the dev server after changing env vars
+- Restart the dev server after changing env vars: Stop (Ctrl+C) and `npm run dev`
 
-### Form submission fails with 500 error
-- Check Supabase dashboard → SQL Editor → verify `waitlist` table exists
+**Form submission fails with 500 error**
+- Verify Supabase dashboard → SQL Editor → `waitlist` table exists
 - Check browser console for specific error message
-- Verify your API keys are correct
+- Verify your API keys are correct in `.env.local`
 
-### Email not sending
+**Email not sending**
 - Resend is optional - form works without it
 - If using Resend, verify your API key is correct
-- Check Resend dashboard for delivery status
+- Check Resend dashboard → Emails for delivery status
 
-### Vercel deployment fails
-- Make sure all environment variables are set in Vercel dashboard
-- Check Vercel build logs for specific error
+**Vercel deployment fails**
+- Ensure all environment variables are set in Vercel Dashboard → Settings → Environment Variables
+- Click "Redeploy" after adding environment variables
+- Check Vercel build logs for specific error messages
 
 ---
 
@@ -186,11 +191,13 @@ See the full PRD and technical specs in the project documentation.
 ## 📚 Documentation
 
 - **[README.md](./README.md)** - This file - Quick start guide and overview
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Deployment guide and troubleshooting
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Guidelines for contributing to the project
 - **[SECURITY.md](./SECURITY.md)** - Security policy and vulnerability reporting
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture and design decisions
 - **[API.md](./API.md)** - API endpoint documentation
 - **[CHANGELOG.md](./CHANGELOG.md)** - Version history and release notes
+- **[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)** - Community guidelines
 
 ### Audit Reports (Archived)
 Previous security and code quality audits:
