@@ -1,7 +1,32 @@
 {
   "name": "continuum-landing",
   "version": "0.1.0",
+  "description": "AI-powered opportunity discovery platform - Landing page with waitlist functionality",
   "private": true,
+  "author": {
+    "name": "Continuum",
+    "email": "hello@continuum.dev"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Krosebrook/continuum.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Krosebrook/continuum/issues"
+  },
+  "homepage": "https://github.com/Krosebrook/continuum#readme",
+  "keywords": [
+    "nextjs",
+    "react",
+    "typescript",
+    "tailwind",
+    "supabase",
+    "landing-page",
+    "saas",
+    "opportunity-discovery",
+    "ai"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",

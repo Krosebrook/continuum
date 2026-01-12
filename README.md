@@ -1,6 +1,12 @@
-# Continuum Landing Page
+# Continuum
 
-AI-powered opportunity discovery platform. Save your most precious resource for the important stuff.
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+
+**AI-powered opportunity discovery platform.** Save your most precious resource for the important stuff.
+
+🚀 **Status**: Production-ready landing page with waitlist functionality
 
 ## Quick Start (10 Minutes to Deploy)
 
@@ -131,36 +137,41 @@ continuum/
 
 ## Features
 
-- Next.js 15 App Router (React 19)
-- Tailwind CSS styling
-- TypeScript strict mode
-- Zod input validation
-- Supabase database + RLS
-- Resend email (optional)
+- **Next.js 16** App Router with React 19
+- **TypeScript** 5.x in strict mode
+- **Tailwind CSS 4.x** for styling
+- **Zod 4.x** for runtime input validation
+- **Supabase** for database with Row-Level Security (RLS)
+- **Resend** for email (optional)
 - Mobile-first responsive design
-- SEO optimized (metadata, OG tags)
+- SEO optimized (metadata, Open Graph tags)
 
 ---
 
 ## Troubleshooting
 
-### "Supabase configuration missing"
+For detailed troubleshooting, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+### Quick Fixes
+
+**"Supabase configuration missing"**
 - Check that `.env.local` has all required values
-- Restart the dev server after changing env vars
+- Restart the dev server after changing env vars: Stop (Ctrl+C) and `npm run dev`
 
-### Form submission fails with 500 error
-- Check Supabase dashboard → SQL Editor → verify `waitlist` table exists
+**Form submission fails with 500 error**
+- Verify Supabase dashboard → SQL Editor → `waitlist` table exists
 - Check browser console for specific error message
-- Verify your API keys are correct
+- Verify your API keys are correct in `.env.local`
 
-### Email not sending
+**Email not sending**
 - Resend is optional - form works without it
 - If using Resend, verify your API key is correct
-- Check Resend dashboard for delivery status
+- Check Resend dashboard → Emails for delivery status
 
-### Vercel deployment fails
-- Make sure all environment variables are set in Vercel dashboard
-- Check Vercel build logs for specific error
+**Vercel deployment fails**
+- Ensure all environment variables are set in Vercel Dashboard → Settings → Environment Variables
+- Click "Redeploy" after adding environment variables
+- Check Vercel build logs for specific error messages
 
 ---
 
@@ -177,19 +188,40 @@ See the full PRD and technical specs in the project documentation.
 
 ---
 
-## Security & Quality Audit
+## 📚 Documentation
 
-This repository has been audited for security and code quality. See:
-- **[AUDIT_SUMMARY.md](./AUDIT_SUMMARY.md)** - Executive summary (5 min read)
-- **[AUDIT_REPORT.md](./AUDIT_REPORT.md)** - Full detailed report (30 min read)
-- **[ACTION_PLAN.md](./ACTION_PLAN.md)** - Prioritized fixes with code examples
+- **[README.md](./README.md)** - This file - Quick start guide and overview
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Deployment guide and troubleshooting
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Guidelines for contributing to the project
+- **[SECURITY.md](./SECURITY.md)** - Security policy and vulnerability reporting
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture and design decisions
+- **[API.md](./API.md)** - API endpoint documentation
+- **[CHANGELOG.md](./CHANGELOG.md)** - Version history and release notes
+- **[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)** - Community guidelines
 
-**Overall Score:** 7/10 (Moderate Health) ⚠️  
-**Status:** Needs critical security fixes before production deployment
+### Audit Reports (Archived)
+Previous security and code quality audits:
+- **[AUDIT_SUMMARY.md](./AUDIT_SUMMARY.md)** - Executive summary
+- **[AUDIT_REPORT.md](./AUDIT_REPORT.md)** - Detailed audit findings
+- **[ACTION_PLAN.md](./ACTION_PLAN.md)** - Implementation action items (completed)
 
 ---
 
-## Support
+## 🤝 Contributing
 
-Questions? Open an issue or email hello@continuum.dev
+We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+
+## 🔒 Security
+
+Found a security vulnerability? Please see [SECURITY.md](./SECURITY.md) for responsible disclosure.
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 💬 Support
+
+- **Issues**: Open an issue on [GitHub](https://github.com/Krosebrook/continuum/issues)
+- **Discussions**: Join conversations in [GitHub Discussions](https://github.com/Krosebrook/continuum/discussions)
+- **Email**: hello@continuum.dev
 
