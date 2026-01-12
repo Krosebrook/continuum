@@ -177,6 +177,18 @@ See the full PRD and technical specs in the project documentation.
 
 ---
 
+## Security & Quality Audit
+
+This repository has been audited for security and code quality. See:
+- **[AUDIT_SUMMARY.md](./AUDIT_SUMMARY.md)** - Executive summary (5 min read)
+- **[AUDIT_REPORT.md](./AUDIT_REPORT.md)** - Full detailed report (30 min read)
+- **[ACTION_PLAN.md](./ACTION_PLAN.md)** - Prioritized fixes with code examples
+
+**Overall Score:** 7/10 (Moderate Health) ⚠️  
+**Status:** Needs critical security fixes before production deployment
+
+---
+
 ## Support
 
 Questions? Open an issue or email hello@continuum.dev
