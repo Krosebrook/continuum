@@ -177,7 +177,7 @@ If you encounter issues:
 1. Check [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed troubleshooting
 2. Review Vercel deployment logs
 3. Check Supabase logs
-4. Open an issue on GitHub: [github.com/Krosebrook/continuum/issues](https://github.com/Krosebrook/continuum/issues)
+4. Open an issue on your GitHub repository
 
 ## 📋 Deployment Status
 
