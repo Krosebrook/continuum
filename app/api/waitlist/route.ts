@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     const validated = waitlistSchema.parse(body);
 
     // Get Supabase client
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServerClient();
 
     // Check if email already exists
     const { data: existing } = await supabase
