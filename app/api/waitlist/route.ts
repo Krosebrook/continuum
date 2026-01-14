@@ -1,19 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { z } from 'zod';
-
-// Initialize clients inline to handle missing env vars gracefully
-function getSupabaseClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !key) {
-    throw new Error('Supabase configuration missing');
-  }
-
-  return createClient(url, key);
-}
+import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 function getResendClient() {
   const key = process.env.RESEND_API_KEY;
@@ -37,7 +25,7 @@ export async function POST(request: Request) {
     const validated = waitlistSchema.parse(body);
 
     // Get Supabase client
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServerClient();
 
     // Check if email already exists
     const { data: existing } = await supabase
