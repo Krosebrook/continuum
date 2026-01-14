@@ -1,25 +1,80 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { z } from 'zod';
-import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+import { waitlistSchema } from '@/lib/schemas/waitlist';
+import { getWaitlistWelcomeEmail } from '@/lib/emails/waitlist-welcome';
 
-function getResendClient() {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) {
-    return null; // Email is optional
+// Initialize rate limiter (optional - only if env vars are set)
+function getRateLimiter() {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  
+  if (!url || !token) {
+    console.warn('Rate limiting not configured (missing UPSTASH env vars)');
+    return null;
   }
-  return new Resend(key);
+  
+  return new Ratelimit({
+    redis: Redis.fromEnv(),
+    limiter: Ratelimit.slidingWindow(3, '1 h'), // 3 requests per hour per IP
+    analytics: true,
+  });
 }
 
-// Input validation schema
-const waitlistSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  name: z.string().min(2).max(100).optional(),
-  company: z.string().max(100).optional(),
-});
+// Initialize clients inline to handle missing env vars gracefully
+function getSupabaseClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !key) {
+    throw new Error('Supabase configuration missing');
+  }
+
+  return createClient(url, key);
+}
+
+let resendClient: Resend | null | undefined;
+
+function getResendClient() {
+  if (resendClient !== undefined) {
+    return resendClient;
+  }
+
+  const key = process.env.RESEND_API_KEY;
+  if (!key) {
+    resendClient = null;
+    return null; // Email is optional
+  }
+  resendClient = new Resend(key);
+  return resendClient;
+}
 
 export async function POST(request: Request) {
   try {
+    // Rate limiting (if configured)
+    const ratelimiter = getRateLimiter();
+    if (ratelimiter) {
+      // Extract IP from headers, handling proxy headers safely
+      const forwardedFor = request.headers.get('x-forwarded-for');
+      const ip = forwardedFor?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || '127.0.0.1';
+      
+      const { success, limit, reset, remaining } = await ratelimiter.limit(ip);
+      
+      if (!success) {
+        return NextResponse.json(
+          { 
+            error: 'Too many requests. Please try again later.',
+            limit,
+            reset,
+            remaining 
+          },
+          { status: 429 }
+        );
+      }
+    }
+
     // Parse and validate input
     const body = await request.json();
     const validated = waitlistSchema.parse(body);
@@ -50,7 +105,7 @@ export async function POST(request: Request) {
         company: validated.company || null,
         source: 'landing_page',
         status: 'pending',
-        created_at: new Date().toISOString(),
+        // created_at is auto-set by database default
       })
       .select()
       .single();
@@ -70,53 +125,20 @@ export async function POST(request: Request) {
         const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://continuum.vercel.app';
 
+        const emailContent = getWaitlistWelcomeEmail({
+          name: validated.name,
+          email: validated.email,
+          siteUrl,
+        });
+
         await resend.emails.send({
           from: fromEmail,
           to: validated.email,
-          subject: "You're on the Continuum waitlist!",
-          html: `
-            <!DOCTYPE html>
-            <html>
-            <head>
-              <meta charset="utf-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            </head>
-            <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #1a1a1a; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-              <div style="text-align: center; margin-bottom: 32px;">
-                <div style="display: inline-block; background: #0284c7; color: white; width: 48px; height: 48px; border-radius: 12px; font-size: 24px; font-weight: bold; line-height: 48px;">C</div>
-              </div>
-
-              <h1 style="color: #0284c7; font-size: 28px; margin-bottom: 16px; text-align: center;">Welcome to Continuum!</h1>
-
-              <p style="font-size: 16px; margin-bottom: 16px;">Hi ${validated.name || 'there'},</p>
-
-              <p style="font-size: 16px; margin-bottom: 24px;">Thanks for joining the waitlist! You're one of the first to discover AI-powered opportunity research.</p>
-
-              <div style="background: #f0f9ff; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
-                <h2 style="color: #0369a1; font-size: 18px; margin: 0 0 16px 0;">What happens next?</h2>
-                <ul style="margin: 0; padding-left: 20px; color: #0c4a6e;">
-                  <li style="margin-bottom: 8px;">We'll email you when beta spots open (within 2-4 weeks)</li>
-                  <li style="margin-bottom: 8px;">First 100 users get <strong>3 months free</strong> ($147 value)</li>
-                  <li style="margin-bottom: 8px;">You'll get early access to features before public launch</li>
-                </ul>
-              </div>
-
-              <p style="font-size: 16px; margin-bottom: 8px;">Have questions? Just reply to this email.</p>
-
-              <p style="font-size: 16px; margin-bottom: 32px;">- The Continuum Team</p>
-
-              <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0;" />
-
-              <p style="font-size: 12px; color: #6b7280; text-align: center;">
-                Don't want updates? <a href="${siteUrl}/unsubscribe?email=${encodeURIComponent(validated.email)}" style="color: #0284c7;">Unsubscribe</a>
-              </p>
-            </body>
-            </html>
-          `,
+          ...emailContent,
         });
       } catch (emailError) {
         // Don't fail the request if email fails - user is still on waitlist
-        console.error('Resend error (non-fatal):', emailError);
+        console.error('Email service error (non-fatal):', emailError);
       }
     }
 

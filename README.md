@@ -191,6 +191,7 @@ See the full PRD and technical specs in the project documentation.
 ## 📚 Documentation
 
 - **[README.md](./README.md)** - This file - Quick start guide and overview
+- **[ROADMAP.md](./ROADMAP.md)** - Product roadmap and future plans
 - **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Deployment guide and troubleshooting
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Guidelines for contributing to the project
 - **[SECURITY.md](./SECURITY.md)** - Security policy and vulnerability reporting

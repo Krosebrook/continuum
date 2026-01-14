@@ -2,12 +2,7 @@
 
 import { useState } from 'react';
 import { z } from 'zod';
-
-const emailSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  name: z.string().min(2, 'Name must be at least 2 characters').optional(),
-  company: z.string().optional(),
-});
+import { waitlistSchema } from '@/lib/schemas/waitlist';
 
 type FormStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -25,7 +20,7 @@ export default function WaitlistForm() {
 
     try {
       // Validate input
-      const validated = emailSchema.parse({
+      const validated = waitlistSchema.parse({
         email,
         name: name || undefined,
         company: company || undefined
