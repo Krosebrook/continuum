@@ -34,6 +34,40 @@ create index if not exists idx_waitlist_email on waitlist(email);
 create index if not exists idx_waitlist_status on waitlist(status);
 create index if not exists idx_waitlist_created on waitlist(created_at desc);
 
+-- Row Level Security for waitlist
+alter table waitlist enable row level security;
+
+-- Allow anyone (anon users) to insert into waitlist
+create policy "public_can_insert" on waitlist
+  for insert
+  to anon, authenticated
+  with check (true);
+
+-- Deny anonymous reads (prevent email scraping)
+create policy "no_anon_select" on waitlist
+  for select
+  to anon
+  using (false);
+
+-- Allow authenticated users to read
+create policy "authenticated_can_select" on waitlist
+  for select
+  to authenticated
+  using (true);
+
+-- Allow authenticated users to update
+create policy "authenticated_can_update" on waitlist
+  for update
+  to authenticated
+  using (true)
+  with check (true);
+
+-- Allow authenticated users to delete
+create policy "authenticated_can_delete" on waitlist
+  for delete
+  to authenticated
+  using (true);
+
 -- ============================================================================
 -- TABLE 2: organizations (multi-tenant isolation root) - FOR FUTURE MVP
 -- ============================================================================
