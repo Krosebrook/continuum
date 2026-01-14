@@ -15,14 +15,6 @@ export const metadata: Metadata = {
     description: "Save your most precious resource for the important stuff. AI-powered research that finds and qualifies opportunities for you.",
     url: process.env.NEXT_PUBLIC_SITE_URL || "https://continuum.vercel.app",
     siteName: "Continuum",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Continuum - AI-Powered Opportunity Discovery",
-      },
-    ],
     locale: "en_US",
     type: "website",
   },
@@ -30,14 +22,13 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Continuum - AI-Powered Opportunity Discovery",
     description: "Save your most precious resource for the important stuff.",
-    images: ["/og-image.png"],
   },
   robots: {
     index: true,
     follow: true,
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: "/favicon.svg",
   },
 };
 
