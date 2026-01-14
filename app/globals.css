@@ -1,3 +1,8 @@
+/* Font configuration with graceful fallback */
+/* Attempts to load Inter from Google Fonts, but won't block if unavailable */
+/* Falls back to system fonts for reliability in restricted environments */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap') layer(fonts);
+
 @import "tailwindcss";
 
 @theme {
@@ -11,6 +16,9 @@
   --color-brand-700: #0369a1;
   --color-brand-800: #075985;
   --color-brand-900: #0c4a6e;
+  
+  /* Font family with system fallbacks */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 @layer base {
@@ -21,6 +29,7 @@
 
   body {
     @apply bg-white text-gray-900 antialiased;
+    font-family: var(--font-sans);
   }
 }
 
