@@ -66,6 +66,8 @@ continuum/
 │   ├── api/                      # API Route Handlers
 │   │   └── waitlist/
 │   │       └── route.ts          # Waitlist submission endpoint
+│   ├── unsubscribe/              # Unsubscribe page
+│   │   └── page.tsx              # Unsubscribe confirmation
 │   ├── globals.css               # Global styles + Tailwind
 │   ├── layout.tsx                # Root layout with metadata
 │   └── page.tsx                  # Homepage (Server Component)
@@ -76,8 +78,11 @@ continuum/
 │   └── Footer.tsx                # Footer (Server Component)
 │
 ├── lib/                          # Utilities & Clients
-│   ├── supabase.ts               # Supabase client configuration
-│   └── resend.ts                 # Resend email client
+│   ├── emails/                   # Email templates
+│   │   └── waitlist-welcome.ts  # Welcome email template
+│   ├── schemas/                  # Validation schemas
+│   │   └── waitlist.ts           # Waitlist form schema
+│   └── supabase-server.ts        # Supabase server client
 │
 ├── supabase/                     # Database
 │   └── schema.sql                # SQL schema + RLS policies
@@ -109,17 +114,17 @@ continuum/
            └─> POST /api/waitlist
 
 2. API Route Handler
-   └─> Rate limiting check (Upstash Redis)
-       └─> Input validation (Zod)
-           └─> Sanitization (DOMPurify)
-               └─> Supabase insert
-                   ├─> Success: Send confirmation email (Resend)
+   └─> Rate limiting check (Upstash Redis - optional)
+       └─> Input validation (Zod schema)
+           └─> Check for duplicate email
+               └─> Supabase insert (parameterized queries prevent SQL injection)
+                   ├─> Success: Send confirmation email (Resend - optional)
                    └─> Duplicate: Return 400 error
 
 3. Database (Supabase)
-   └─> RLS policy check
+   └─> RLS policy check (public inserts allowed for waitlist)
        └─> Insert into waitlist table
-           └─> Trigger updated_at timestamp
+           └─> Auto-set created_at timestamp
 
 4. Response to Client
    └─> Success: Show success message
@@ -179,9 +184,10 @@ continuum/
 │ name (text)     │    Optional
 │ company (text)  │    Optional
 │ source (text)   │    Default: 'landing_page'
-│ status (text)   │    Default: 'pending'
+│ status (text)   │    Default: 'pending' (pending, invited, converted)
 │ created_at      │    Timestamp
-│ updated_at      │    Timestamp (auto-update)
+│ invited_at      │    Timestamp (nullable)
+│ converted_at    │    Timestamp (nullable)
 └─────────────────┘
 
 Future tables (MVP):
@@ -207,26 +213,23 @@ Future tables (MVP):
 ### Row-Level Security (RLS)
 
 **Current**: Waitlist table
+- Uses grant-based permissions (no RLS policies)
+- Anonymous users can INSERT (for public waitlist signup)
+- Authenticated users can SELECT, INSERT, UPDATE, DELETE
+- Appropriate for public landing page functionality
+
 ```sql
--- Allow public inserts (landing page)
-create policy "public_can_insert" on waitlist
-  for insert to anon, authenticated with check (true);
-
--- Deny anonymous reads (prevent email scraping)
-create policy "no_anon_select" on waitlist
-  for select to anon using (false);
-
--- Allow authenticated users to read
-create policy "authenticated_can_select" on waitlist
-  for select to authenticated using (true);
+-- Grant access to waitlist table (for landing page - anon access needed)
+grant select, insert on waitlist to anon;
+grant select, insert, update, delete on waitlist to authenticated;
 ```
 
-**Future**: Multi-tenant isolation
+**Future**: Multi-tenant isolation with RLS
 ```sql
--- Users can only see data from their organization
+-- Example: Users can only see data from their organization
 create policy "org_isolation" on opportunities
   for select to authenticated
-  using (org_id = (auth.jwt() ->> 'org_id')::uuid);
+  using (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid);
 ```
 
 ## 🔐 Security Architecture
@@ -239,9 +242,9 @@ create policy "org_isolation" on opportunities
    - DDoS protection (Vercel Edge Network)
 
 2. **Application Layer**
-   - Rate limiting (Upstash Redis)
+   - Rate limiting (Upstash Redis - optional)
    - Input validation (Zod schemas)
-   - Input sanitization (DOMPurify)
+   - Parameterized queries prevent injection
    - Error message sanitization
 
 3. **Database Layer**
@@ -255,7 +258,7 @@ create policy "org_isolation" on opportunities
    - JWT tokens (1 hour expiry)
    - Role-based access control
 
-### Rate Limiting Strategy
+### Rate Limiting Strategy (Optional)
 
 ```typescript
 // 3 submissions per hour per IP address
@@ -265,6 +268,11 @@ const ratelimit = new Ratelimit({
   analytics: true,
 });
 ```
+
+**Configuration:**
+- Requires UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN environment variables
+- If not configured, rate limiting is skipped with a warning
+- Graceful degradation ensures waitlist still works without rate limiting
 
 **Why 3 per hour?**
 - Prevents spam/bot attacks
@@ -279,9 +287,13 @@ const ratelimit = new Ratelimit({
 POST /api/waitlist
 ├── Headers: Content-Type: application/json
 ├── Body: { email, name?, company? }
-├── Rate Limit: 3 requests per hour per IP
+├── Rate Limit: 3 requests per hour per IP (if Upstash configured)
 ├── Response: 201 Created | 400 Bad Request | 429 Too Many Requests | 500 Internal Error
 └── Side Effects: Email sent (if Resend configured)
+
+GET /api/waitlist
+├── Response: 200 OK with health check status
+└── Body: { status: 'ok', timestamp: ISO string }
 ```
 
 ### Error Handling
