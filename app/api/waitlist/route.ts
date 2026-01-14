@@ -12,12 +12,12 @@ import { getSupabaseServerClient } from '@/lib/supabase-server';
 function getRateLimiter() {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  
+
   if (!url || !token) {
     console.warn('Rate limiting not configured (missing UPSTASH env vars)');
     return null;
   }
-  
+
   return new Ratelimit({
     redis: Redis.fromEnv(),
     limiter: Ratelimit.slidingWindow(3, '1 h'), // 3 requests per hour per IP
