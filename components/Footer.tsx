@@ -21,7 +21,8 @@ export default function Footer() {
             >
               Contact
             </a>
-            <a
+            {/* TODO: Update with actual social media URLs when available */}
+            {/* <a
               href="https://twitter.com/continuum"
               target="_blank"
               rel="noopener noreferrer"
@@ -36,7 +37,7 @@ export default function Footer() {
               className="transition-colors hover:text-brand-600"
             >
               LinkedIn
-            </a>
+            </a> */}
           </div>
 
           {/* Copyright */}
