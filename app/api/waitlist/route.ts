@@ -49,7 +49,10 @@ export async function POST(request: Request) {
     // Rate limiting (if configured)
     const ratelimiter = getRateLimiter();
     if (ratelimiter) {
-      const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1';
+      // Extract IP from headers, handling proxy headers safely
+      const forwardedFor = request.headers.get('x-forwarded-for');
+      const ip = forwardedFor?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || '127.0.0.1';
+      
       const { success, limit, reset, remaining } = await ratelimiter.limit(ip);
       
       if (!success) {
