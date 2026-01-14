@@ -51,7 +51,7 @@ export default function WaitlistForm() {
     } catch (error) {
       setStatus('error');
       if (error instanceof z.ZodError) {
-        setErrorMessage(error.errors[0].message);
+        setErrorMessage(error.issues[0].message);
       } else if (error instanceof Error) {
         setErrorMessage(error.message);
       } else {
