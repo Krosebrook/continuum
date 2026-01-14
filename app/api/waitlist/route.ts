@@ -3,24 +3,21 @@ import { Resend } from 'resend';
 import { z } from 'zod';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
-import DOMPurify from 'isomorphic-dompurify';
+import { createClient } from '@supabase/supabase-js';
 import { waitlistSchema } from '@/lib/schemas/waitlist';
 import { getWaitlistWelcomeEmail } from '@/lib/emails/waitlist-welcome';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
-
-// PostgreSQL error codes
-const POSTGRES_UNIQUE_VIOLATION = '23505';
 
 // Initialize rate limiter (optional - only if env vars are set)
 function getRateLimiter() {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  
+
   if (!url || !token) {
     console.warn('Rate limiting not configured (missing UPSTASH env vars)');
     return null;
   }
-  
+
   return new Ratelimit({
     redis: Redis.fromEnv(),
     limiter: Ratelimit.slidingWindow(3, '1 h'), // 3 requests per hour per IP
@@ -28,7 +25,7 @@ function getRateLimiter() {
   });
 }
 
-// getSupabaseServerClient is imported from @/lib/supabase-server
+// Supabase client is now imported from lib/supabase-server.ts
 
 let resendClient: Resend | null | undefined;
 
@@ -82,7 +79,7 @@ export async function POST(request: Request) {
     };
 
     // Get Supabase client
-    const supabase = getSupabaseServerClient();
+    const supabase = getSupabaseClient();
 
     // Insert into waitlist table (unique constraint will handle duplicates)
     const { data, error } = await supabase
