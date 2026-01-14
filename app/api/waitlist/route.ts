@@ -3,11 +3,13 @@ import { Resend } from 'resend';
 import { z } from 'zod';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
-import { createClient } from '@supabase/supabase-js';
 import DOMPurify from 'isomorphic-dompurify';
 import { waitlistSchema } from '@/lib/schemas/waitlist';
 import { getWaitlistWelcomeEmail } from '@/lib/emails/waitlist-welcome';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
+
+// PostgreSQL error codes
+const POSTGRES_UNIQUE_VIOLATION = '23505';
 
 // Initialize rate limiter (optional - only if env vars are set)
 function getRateLimiter() {
@@ -98,7 +100,7 @@ export async function POST(request: Request) {
 
     if (error) {
       // Handle duplicate email (unique constraint violation)
-      if (error.code === '23505') {
+      if (error.code === POSTGRES_UNIQUE_VIOLATION) {
         return NextResponse.json(
           { error: 'This email is already on the waitlist!' },
           { status: 400 }
