@@ -3,6 +3,7 @@ import { Resend } from 'resend';
 import { z } from 'zod';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
+import { createClient } from '@supabase/supabase-js';
 import { waitlistSchema } from '@/lib/schemas/waitlist';
 import { getWaitlistWelcomeEmail } from '@/lib/emails/waitlist-welcome';
 
@@ -80,7 +81,7 @@ export async function POST(request: Request) {
     const validated = waitlistSchema.parse(body);
 
     // Get Supabase client
-    const supabase = getSupabaseServerClient();
+    const supabase = getSupabaseClient();
 
     // Check if email already exists
     const { data: existing } = await supabase

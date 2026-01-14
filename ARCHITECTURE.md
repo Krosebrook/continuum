@@ -66,6 +66,8 @@ continuum/
 │   ├── api/                      # API Route Handlers
 │   │   └── waitlist/
 │   │       └── route.ts          # Waitlist submission endpoint
+│   ├── unsubscribe/              # Unsubscribe page
+│   │   └── page.tsx              # Unsubscribe confirmation
 │   ├── globals.css               # Global styles + Tailwind
 │   ├── layout.tsx                # Root layout with metadata
 │   └── page.tsx                  # Homepage (Server Component)
@@ -76,8 +78,11 @@ continuum/
 │   └── Footer.tsx                # Footer (Server Component)
 │
 ├── lib/                          # Utilities & Clients
-│   ├── supabase.ts               # Supabase client configuration
-│   └── resend.ts                 # Resend email client
+│   ├── emails/                   # Email templates
+│   │   └── waitlist-welcome.ts  # Welcome email template
+│   ├── schemas/                  # Validation schemas
+│   │   └── waitlist.ts           # Waitlist form schema
+│   └── supabase-server.ts        # Supabase server client
 │
 ├── supabase/                     # Database
 │   └── schema.sql                # SQL schema + RLS policies
