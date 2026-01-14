@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { z } from 'zod';
 import { Ratelimit } from '@upstash/ratelimit';
@@ -81,7 +80,7 @@ export async function POST(request: Request) {
     const validated = waitlistSchema.parse(body);
 
     // Get Supabase client
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServerClient();
 
     // Check if email already exists
     const { data: existing } = await supabase
