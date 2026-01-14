@@ -15,12 +15,20 @@ function getSupabaseClient() {
   return createClient(url, key);
 }
 
+let resendClient: Resend | null | undefined;
+
 function getResendClient() {
+  if (resendClient !== undefined) {
+    return resendClient;
+  }
+
   const key = process.env.RESEND_API_KEY;
   if (!key) {
+    resendClient = null;
     return null; // Email is optional
   }
-  return new Resend(key);
+  resendClient = new Resend(key);
+  return resendClient;
 }
 
 // Input validation schema
