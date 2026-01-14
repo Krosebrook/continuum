@@ -3,9 +3,10 @@ import { Resend } from 'resend';
 import { z } from 'zod';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
+import { createClient } from '@supabase/supabase-js';
 import { waitlistSchema } from '@/lib/schemas/waitlist';
 import { getWaitlistWelcomeEmail } from '@/lib/emails/waitlist-welcome';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 // Initialize rate limiter (optional - only if env vars are set)
 function getRateLimiter() {
@@ -23,6 +24,8 @@ function getRateLimiter() {
     analytics: true,
   });
 }
+
+// Supabase client is now imported from lib/supabase-server.ts
 
 let resendClient: Resend | null | undefined;
 
@@ -69,7 +72,7 @@ export async function POST(request: Request) {
     const validated = waitlistSchema.parse(body);
 
     // Get Supabase client
-    const supabase = getSupabaseServerClient();
+    const supabase = getSupabaseClient();
 
     // Check if email already exists
     const { data: existing } = await supabase

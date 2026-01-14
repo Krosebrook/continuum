@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-// Use system font stack for optimal performance and no external dependencies
-const fontClassName = "font-sans";
+// Note: Font configuration moved to globals.css for better reliability
+// in restricted network environments (CI/CD, air-gapped systems)
+// Using system fonts with Inter as preferred font family via @import in CSS
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://continuum.vercel.app"),
@@ -15,14 +16,6 @@ export const metadata: Metadata = {
     description: "Save your most precious resource for the important stuff. AI-powered research that finds and qualifies opportunities for you.",
     url: process.env.NEXT_PUBLIC_SITE_URL || "https://continuum.vercel.app",
     siteName: "Continuum",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Continuum - AI-Powered Opportunity Discovery",
-      },
-    ],
     locale: "en_US",
     type: "website",
   },
@@ -30,14 +23,13 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Continuum - AI-Powered Opportunity Discovery",
     description: "Save your most precious resource for the important stuff.",
-    images: ["/og-image.png"],
   },
   robots: {
     index: true,
     follow: true,
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: "/favicon.svg",
   },
 };
 
@@ -48,7 +40,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={fontClassName}>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }
