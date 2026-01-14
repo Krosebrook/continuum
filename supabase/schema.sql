@@ -49,8 +49,22 @@ create table if not exists organizations (
 -- RLS: Users can only see their own organization
 alter table organizations enable row level security;
 
-create policy "org_isolation" on organizations
-  for all
+-- Split policies for better security and functionality
+create policy "org_select" on organizations
+  for select
+  using (id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid);
+
+create policy "org_insert" on organizations
+  for insert
+  with check (true);
+
+create policy "org_update" on organizations
+  for update
+  using (id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid)
+  with check (id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid);
+
+create policy "org_delete" on organizations
+  for delete
   using (id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid);
 
 -- Index for faster lookups
@@ -72,8 +86,22 @@ create table if not exists users (
 -- RLS: Users can only see users in their org
 alter table users enable row level security;
 
-create policy "user_isolation" on users
-  for all
+-- Split policies for better security and functionality
+create policy "user_select" on users
+  for select
+  using (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid);
+
+create policy "user_insert" on users
+  for insert
+  with check (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid);
+
+create policy "user_update" on users
+  for update
+  using (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid)
+  with check (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid);
+
+create policy "user_delete" on users
+  for delete
   using (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid);
 
 -- Indexes
@@ -104,8 +132,22 @@ create table if not exists icps (
 -- RLS: Users can only see ICPs in their org
 alter table icps enable row level security;
 
-create policy "icp_isolation" on icps
-  for all
+-- Split policies for better security and functionality
+create policy "icp_select" on icps
+  for select
+  using (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid);
+
+create policy "icp_insert" on icps
+  for insert
+  with check (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid);
+
+create policy "icp_update" on icps
+  for update
+  using (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid)
+  with check (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid);
+
+create policy "icp_delete" on icps
+  for delete
   using (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid);
 
 -- Indexes
@@ -149,8 +191,22 @@ create table if not exists opportunities (
 -- RLS: Users can only see opportunities in their org
 alter table opportunities enable row level security;
 
-create policy "opportunity_isolation" on opportunities
-  for all
+-- Split policies for better security and functionality
+create policy "opportunity_select" on opportunities
+  for select
+  using (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid);
+
+create policy "opportunity_insert" on opportunities
+  for insert
+  with check (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid);
+
+create policy "opportunity_update" on opportunities
+  for update
+  using (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid)
+  with check (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid);
+
+create policy "opportunity_delete" on opportunities
+  for delete
   using (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid);
 
 -- Indexes for common queries
@@ -211,8 +267,22 @@ create table if not exists search_runs (
 -- RLS: Users can only see search runs in their org
 alter table search_runs enable row level security;
 
-create policy "search_run_isolation" on search_runs
-  for all
+-- Split policies for better security and functionality
+create policy "search_run_select" on search_runs
+  for select
+  using (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid);
+
+create policy "search_run_insert" on search_runs
+  for insert
+  with check (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid);
+
+create policy "search_run_update" on search_runs
+  for update
+  using (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid)
+  with check (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid);
+
+create policy "search_run_delete" on search_runs
+  for delete
   using (org_id = (current_setting('request.jwt.claims', true)::json->>'org_id')::uuid);
 
 -- Indexes
@@ -256,11 +326,32 @@ grant usage on schema public to authenticated;
 
 -- Grant access to waitlist table (for landing page - anon access needed)
 grant select, insert on waitlist to anon;
-grant all on waitlist to authenticated;
+grant select, insert, update, delete on waitlist to authenticated;
 
--- Grant access to other tables (authenticated only)
-grant all on all tables in schema public to authenticated;
-grant all on all sequences in schema public to authenticated;
+-- Grant specific access to other tables (authenticated only)
+-- Organizations table
+grant select, insert, update, delete on organizations to authenticated;
+
+-- Users table
+grant select, insert, update, delete on users to authenticated;
+
+-- ICPs table
+grant select, insert, update, delete on icps to authenticated;
+
+-- Opportunities table
+grant select, insert, update, delete on opportunities to authenticated;
+
+-- Opportunity enrichment table
+grant select, insert, update, delete on opportunity_enrichment to authenticated;
+
+-- Opportunity contacts table
+grant select, insert, update, delete on opportunity_contacts to authenticated;
+
+-- Search runs table
+grant select, insert, update, delete on search_runs to authenticated;
+
+-- Grant access to sequences
+grant usage, select on all sequences in schema public to authenticated;
 
 -- ============================================================================
 -- COMPLETE ✅
