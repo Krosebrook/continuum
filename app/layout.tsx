@@ -6,6 +6,7 @@ import "./globals.css";
 // Using system fonts with Inter as preferred font family via @import in CSS
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://continuum.vercel.app"),
   title: "Continuum - AI-Powered Opportunity Discovery",
   description: "Save your most precious resource for the important stuff. Automated opportunity research, qualification, and prioritization powered by AI.",
   keywords: ["opportunity discovery", "sales leads", "AI research", "business development", "lead generation", "sales automation"],
