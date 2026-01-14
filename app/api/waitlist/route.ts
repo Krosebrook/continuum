@@ -6,6 +6,7 @@ import { Redis } from '@upstash/redis';
 import { createClient } from '@supabase/supabase-js';
 import { waitlistSchema } from '@/lib/schemas/waitlist';
 import { getWaitlistWelcomeEmail } from '@/lib/emails/waitlist-welcome';
+import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 // Initialize rate limiter (optional - only if env vars are set)
 function getRateLimiter() {
@@ -24,17 +25,7 @@ function getRateLimiter() {
   });
 }
 
-// Initialize clients inline to handle missing env vars gracefully
-function getSupabaseClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !key) {
-    throw new Error('Supabase configuration missing');
-  }
-
-  return createClient(url, key);
-}
+// Supabase client is now imported from lib/supabase-server.ts
 
 let resendClient: Resend | null | undefined;
 

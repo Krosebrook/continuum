@@ -8,6 +8,8 @@
 
 🚀 **Status**: Production-ready landing page with waitlist functionality
 
+> **📋 Before deploying?** Check the [Deployment Checklist](./DEPLOYMENT_CHECKLIST.md) for a comprehensive guide!
+
 ## Quick Start (10 Minutes to Deploy)
 
 ### Step 1: Create Supabase Project (3 min)
