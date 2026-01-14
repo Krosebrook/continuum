@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ 
-  subsets: ["latin"],
-  display: 'swap',
-  fallback: ['system-ui', 'arial']
-});
+// Note: Font configuration moved to globals.css for better reliability
+// in restricted network environments (CI/CD, air-gapped systems)
+// Using system fonts with Inter as preferred font family via @import in CSS
 
 export const metadata: Metadata = {
   title: "Continuum - AI-Powered Opportunity Discovery",
@@ -51,7 +48,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }
