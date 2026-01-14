@@ -6,6 +6,8 @@ node_modules
 
 # Testing
 coverage
+.vitest
+*.lcov
 
 # Next.js
 .next/
