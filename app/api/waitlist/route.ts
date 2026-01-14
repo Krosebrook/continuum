@@ -71,30 +71,23 @@ export async function POST(request: Request) {
     const body = await request.json();
     const validated = waitlistSchema.parse(body);
 
+    // Sanitize inputs to prevent XSS
+    const sanitized = {
+      email: validated.email.toLowerCase().trim(),
+      name: validated.name ? DOMPurify.sanitize(validated.name.trim()) : null,
+      company: validated.company ? DOMPurify.sanitize(validated.company.trim()) : null,
+    };
+
     // Get Supabase client
     const supabase = getSupabaseClient();
 
-    // Check if email already exists
-    const { data: existing } = await supabase
-      .from('waitlist')
-      .select('email')
-      .eq('email', validated.email)
-      .single();
-
-    if (existing) {
-      return NextResponse.json(
-        { error: 'This email is already on the waitlist!' },
-        { status: 400 }
-      );
-    }
-
-    // Insert into waitlist table
+    // Insert into waitlist table (unique constraint will handle duplicates)
     const { data, error } = await supabase
       .from('waitlist')
       .insert({
-        email: validated.email,
-        name: validated.name || null,
-        company: validated.company || null,
+        email: sanitized.email,
+        name: sanitized.name,
+        company: sanitized.company,
         source: 'landing_page',
         status: 'pending',
         // created_at is auto-set by database default
@@ -103,9 +96,18 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
-      console.error('Supabase error:', error);
+      // Handle duplicate email (unique constraint violation)
+      if (error.code === POSTGRES_UNIQUE_VIOLATION) {
+        return NextResponse.json(
+          { error: 'This email is already on the waitlist!' },
+          { status: 400 }
+        );
+      }
+      
+      // Handle other errors - log internally but don't expose details
+      console.error('Database error:', error);
       return NextResponse.json(
-        { error: 'Failed to join waitlist. Please try again.' },
+        { error: 'Unable to process your request. Please try again later.' },
         { status: 500 }
       );
     }
@@ -118,18 +120,19 @@ export async function POST(request: Request) {
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://continuum.vercel.app';
 
         const emailContent = getWaitlistWelcomeEmail({
-          name: validated.name,
-          email: validated.email,
+          name: sanitized.name || undefined,
+          email: sanitized.email,
           siteUrl,
         });
 
         await resend.emails.send({
           from: fromEmail,
-          to: validated.email,
+          to: sanitized.email,
           ...emailContent,
         });
       } catch (emailError) {
         // Don't fail the request if email fails - user is still on waitlist
+        // Log internally but don't expose email service details
         console.error('Email service error (non-fatal):', emailError);
       }
     }
