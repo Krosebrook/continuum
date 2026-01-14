@@ -5,34 +5,23 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { waitlistSchema } from '@/lib/schemas/waitlist';
 import { getWaitlistWelcomeEmail } from '@/lib/emails/waitlist-welcome';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 // Initialize rate limiter (optional - only if env vars are set)
 function getRateLimiter() {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  
+
   if (!url || !token) {
     console.warn('Rate limiting not configured (missing UPSTASH env vars)');
     return null;
   }
-  
+
   return new Ratelimit({
     redis: Redis.fromEnv(),
     limiter: Ratelimit.slidingWindow(3, '1 h'), // 3 requests per hour per IP
     analytics: true,
   });
-}
-
-// Initialize clients inline to handle missing env vars gracefully
-function getSupabaseClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !key) {
-    throw new Error('Supabase configuration missing');
-  }
-
-  return createClient(url, key);
 }
 
 let resendClient: Resend | null | undefined;

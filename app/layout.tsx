@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ 
-  subsets: ["latin"],
-  display: 'swap',
-  fallback: ['system-ui', 'arial']
-});
+// Use system font stack for optimal performance and no external dependencies
+const fontClassName = "font-sans";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://continuum.vercel.app"),
   title: "Continuum - AI-Powered Opportunity Discovery",
   description: "Save your most precious resource for the important stuff. Automated opportunity research, qualification, and prioritization powered by AI.",
   keywords: ["opportunity discovery", "sales leads", "AI research", "business development", "lead generation", "sales automation"],
@@ -51,7 +48,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={fontClassName}>{children}</body>
     </html>
   );
 }
