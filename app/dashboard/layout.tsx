@@ -1,5 +1,6 @@
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 export default function DashboardLayout({
   children,
@@ -7,18 +8,20 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar - hidden on mobile */}
-      <div className="hidden lg:flex lg:flex-shrink-0">
-        <Sidebar />
-      </div>
+    <ProtectedRoute>
+      <div className="flex h-screen bg-gray-50">
+        {/* Sidebar - hidden on mobile */}
+        <div className="hidden lg:flex lg:flex-shrink-0">
+          <Sidebar />
+        </div>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <ErrorBoundary>
-          {children}
-        </ErrorBoundary>
+        {/* Main content */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
+        </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }
