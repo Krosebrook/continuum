@@ -23,6 +23,17 @@ const REVENUE_RANGES = [
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
+const STEPS = [
+  { num: 1 as const, title: 'Name' },
+  { num: 2 as const, title: 'Industries' },
+  { num: 3 as const, title: 'Company Size' },
+  { num: 4 as const, title: 'Location' },
+  { num: 5 as const, title: 'Keywords' },
+] as const;
+
+const MIN_STEP = 1;
+const MAX_STEP = 5;
+
 export default function EditICPPage() {
   const router = useRouter();
   const params = useParams();
@@ -135,13 +146,19 @@ export default function EditICPPage() {
     }
   };
 
-  const steps = [
-    { num: 1, title: 'Name' },
-    { num: 2, title: 'Industries' },
-    { num: 3, title: 'Company Size' },
-    { num: 4, title: 'Location' },
-    { num: 5, title: 'Keywords' },
-  ];
+  const steps = STEPS;
+
+  const goToPreviousStep = () => {
+    if (step > MIN_STEP) {
+      setStep((step - 1) as Step);
+    }
+  };
+
+  const goToNextStep = () => {
+    if (step < MAX_STEP) {
+      setStep((step + 1) as Step);
+    }
+  };
 
   if (loading) {
     return (
@@ -439,16 +456,16 @@ export default function EditICPPage() {
             <div className="mt-6 flex justify-between">
               <button
                 type="button"
-                onClick={() => setStep((step - 1) as Step)}
-                disabled={step === 1}
+                onClick={goToPreviousStep}
+                disabled={step === MIN_STEP}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Back
               </button>
-              {step < 5 ? (
+              {step < MAX_STEP ? (
                 <button
                   type="button"
-                  onClick={() => setStep((step + 1) as Step)}
+                  onClick={goToNextStep}
                   className="px-6 py-2 text-sm font-medium text-white bg-brand-600 rounded-lg hover:bg-brand-700"
                 >
                   Next

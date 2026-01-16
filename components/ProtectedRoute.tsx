@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { LoadingSpinner } from './LoadingSpinner';
@@ -14,10 +14,12 @@ export function ProtectedRoute({ children, requireAuth = true }: ProtectedRouteP
   const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const hasRedirected = useRef(false);
 
   useEffect(() => {
-    if (!loading && requireAuth && !user) {
+    if (!loading && requireAuth && !user && !hasRedirected.current) {
       // Not authenticated, redirect to login
+      hasRedirected.current = true;
       router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
     }
   }, [user, loading, requireAuth, router, pathname]);
