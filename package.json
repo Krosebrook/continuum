@@ -43,7 +43,7 @@
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.36.1",
     "isomorphic-dompurify": "^2.35.0",
-    "next": "16.1.3",
+    "next": "16.1.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "resend": "^6.8.0",
