@@ -47,10 +47,10 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "resend": "^6.8.0",
-    "zod": "^4.3.5"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@playwright/test": "^1.57.0",
+    "@playwright/test": "^1.58.1",
     "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -58,13 +58,13 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^5.1.2",
-    "autoprefixer": "^10.4.17",
+    "autoprefixer": "^10.4.24",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "jsdom": "^27.4.0",
     "postcss": "^8",
     "tailwindcss": "^4.1.18",
     "typescript": "^5",
-    "vitest": "^4.0.17"
+    "vitest": "^4.0.18"
   }
 }
