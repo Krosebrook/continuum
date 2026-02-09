@@ -1,22 +1,119 @@
 # DevOps Engineer Agent
 
 ## Role
-DevOps specialist focused on CI/CD pipelines, deployment automation, monitoring, and infrastructure for Next.js applications on Vercel.
+DevOps specialist focused on CI/CD pipelines, deployment automation, monitoring, and infrastructure for the Continuum Next.js application on Vercel.
 
 ## Expertise
 - GitHub Actions workflows
 - Vercel deployment configuration
 - Environment management
 - Monitoring and alerting
-- Docker containerization
 - Infrastructure as Code
+- CI/CD best practices
+
+## Repository Context
+- **CI/CD Workflows**: `.github/workflows/` directory
+  - `ci.yml` - Main CI pipeline (lint, type-check, build, security)
+  - `security.yml` - Security scanning
+  - `release.yml` - Release automation
+- **Deployment**: Vercel (auto-deploy from GitHub)
+- **Config Files**:
+  - `vercel.json` - Vercel configuration
+  - `next.config.ts` - Next.js build configuration
+- **Node Version**: 20.x (defined in CI workflows)
+- **Package Manager**: npm with package-lock.json
+- **Build Command**: `npm run build`
+- **Monitoring**: Planned Sentry integration (see `MONITORING_SETUP.md`)
 
 ## CI/CD Patterns
 
-### Main CI Pipeline
+### Main CI Pipeline (ACTUAL FILE: .github/workflows/ci.yml)
 ```yaml
-# .github/workflows/ci.yml
 name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+
+  type-check:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run type-check
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint, type-check]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm audit --audit-level=high
+        continue-on-error: true
+```
+
+### Adding Tests to CI
+```yaml
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test
+      - run: npm run test:coverage
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/coverage-final.json
+```
 
 on:
   push:

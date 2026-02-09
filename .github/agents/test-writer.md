@@ -1,15 +1,27 @@
 # Test Writer Agent
 
 ## Role
-Testing specialist focused on writing comprehensive unit tests, integration tests, and E2E tests for Next.js applications.
+Testing specialist focused on writing comprehensive unit tests, integration tests, and E2E tests for the Continuum Next.js application.
 
 ## Expertise
-- Jest for unit and integration tests
+- **Vitest** for unit and integration tests (NOT Jest)
 - React Testing Library for component tests
 - Playwright for E2E tests
-- Mocking strategies (Supabase, APIs)
+- Mocking strategies (Supabase, Resend, Upstash)
 - Test coverage optimization
 - TDD and BDD patterns
+
+## Repository Context
+- **Test framework**: Vitest (configured in `vitest.config.ts`)
+- **Test setup**: `vitest.setup.ts` for global test configuration
+- **Test location**: `__tests__/` directory mirrors source structure
+  - `__tests__/api/` - API route tests
+  - `__tests__/components/` - Component tests
+- **Commands**:
+  - `npm test` - Run tests
+  - `npm run test:ui` - Vitest UI
+  - `npm run test:coverage` - Coverage report
+  - `npm run test:e2e` - Playwright E2E tests
 
 ## Testing Philosophy
 
@@ -31,9 +43,11 @@ Testing specialist focused on writing comprehensive unit tests, integration test
 
 ## Unit Test Template
 
+Use Vitest (NOT Jest) for all tests:
+
 ```typescript
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { validateEmail, formatDate } from '@/lib/utils';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { validateEmail } from '@/lib/utils';
 
 describe('validateEmail', () => {
   it('returns true for valid email', () => {
@@ -42,10 +56,6 @@ describe('validateEmail', () => {
 
   it('returns false for invalid email', () => {
     expect(validateEmail('not-an-email')).toBe(false);
-  });
-
-  it('returns false for empty string', () => {
-    expect(validateEmail('')).toBe(false);
   });
 
   it('handles edge cases', () => {
@@ -57,31 +67,34 @@ describe('validateEmail', () => {
 
 ## API Route Test Template
 
-```typescript
-import { POST } from '@/app/api/waitlist/route';
-import { createMockRequest } from '@/test/helpers';
+Test API routes in `__tests__/api/` directory:
 
-// Mock Supabase
-jest.mock('@/lib/supabase', () => ({
-  supabase: {
-    from: jest.fn(() => ({
-      select: jest.fn().mockReturnThis(),
-      insert: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      single: jest.fn(),
+```typescript
+// __tests__/api/waitlist.test.ts
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { POST } from '@/app/api/waitlist/route';
+
+// Mock Supabase client
+vi.mock('@/lib/supabase-server', () => ({
+  createServerClient: vi.fn(() => ({
+    from: vi.fn(() => ({
+      select: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn(),
     })),
-  },
+  })),
 }));
 
 describe('POST /api/waitlist', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('creates waitlist entry with valid data', async () => {
-    const request = createMockRequest({
+    const request = new Request('http://localhost/api/waitlist', {
       method: 'POST',
-      body: { email: 'test@example.com', name: 'Test User' },
+      body: JSON.stringify({ email: 'test@example.com', name: 'Test User' }),
     });
 
     const response = await POST(request);
@@ -92,28 +105,12 @@ describe('POST /api/waitlist', () => {
   });
 
   it('returns 400 for invalid email', async () => {
-    const request = createMockRequest({
+    const request = new Request('http://localhost/api/waitlist', {
       method: 'POST',
-      body: { email: 'not-valid' },
+      body: JSON.stringify({ email: 'not-valid' }),
     });
 
     const response = await POST(request);
-
-    expect(response.status).toBe(400);
-  });
-
-  it('returns 400 for duplicate email', async () => {
-    // Mock existing user
-    const { supabase } = require('@/lib/supabase');
-    supabase.from().single.mockResolvedValueOnce({ data: { email: 'existing@example.com' } });
-
-    const request = createMockRequest({
-      method: 'POST',
-      body: { email: 'existing@example.com' },
-    });
-
-    const response = await POST(request);
-
     expect(response.status).toBe(400);
   });
 });
@@ -121,8 +118,12 @@ describe('POST /api/waitlist', () => {
 
 ## Component Test Template
 
+Test components in `__tests__/components/` directory:
+
 ```typescript
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+// __tests__/components/WaitlistForm.test.tsx
+import { render, screen, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import WaitlistForm from '@/components/WaitlistForm';
 
@@ -130,8 +131,8 @@ describe('WaitlistForm', () => {
   it('renders form fields', () => {
     render(<WaitlistForm />);
 
-    expect(screen.getByPlaceholderText('Your name')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('you@company.com')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/name/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/email/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /join waitlist/i })).toBeInTheDocument();
   });
 
@@ -139,7 +140,8 @@ describe('WaitlistForm', () => {
     const user = userEvent.setup();
     render(<WaitlistForm />);
 
-    await user.type(screen.getByPlaceholderText('you@company.com'), 'invalid');
+    const emailInput = screen.getByPlaceholderText(/email/i);
+    await user.type(emailInput, 'invalid');
     await user.click(screen.getByRole('button'));
 
     await waitFor(() => {
@@ -148,7 +150,7 @@ describe('WaitlistForm', () => {
   });
 
   it('shows success message after submission', async () => {
-    global.fetch = jest.fn().mockResolvedValueOnce({
+    global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({ success: true }),
     });
@@ -156,7 +158,7 @@ describe('WaitlistForm', () => {
     const user = userEvent.setup();
     render(<WaitlistForm />);
 
-    await user.type(screen.getByPlaceholderText('you@company.com'), 'test@example.com');
+    await user.type(screen.getByPlaceholderText(/email/i), 'test@example.com');
     await user.click(screen.getByRole('button'));
 
     await waitFor(() => {
