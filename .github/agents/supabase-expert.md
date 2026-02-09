@@ -14,80 +14,108 @@ Supabase specialist focused on database operations, authentication, real-time su
 
 ## Client Setup
 
-### Server-Side Client
+### Server-Side Client (ALWAYS use in API routes)
 ```typescript
-// lib/supabase-server.ts
+// lib/supabase-server.ts (ACTUAL FILE IN REPO)
 import { createClient } from '@supabase/supabase-js';
 
 export function createServerClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!, // Server-side only
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    }
-  );
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Service role for server
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createClient(supabaseUrl, supabaseKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
+
+// Usage in API routes (see app/api/waitlist/route.ts)
+import { createServerClient } from '@/lib/supabase-server';
+
+export async function POST(request: Request) {
+  const supabase = createServerClient();
+  const { data, error } = await supabase
+    .from('waitlist')
+    .insert({ email: 'test@example.com' })
+    .select()
+    .single();
+  // ...
 }
 ```
 
-### Client-Side Client
+### Client-Side Client (use in Client Components)
 ```typescript
+// For client-side components (NOT YET IMPLEMENTED - add when needed)
 // lib/supabase-client.ts
 import { createClient } from '@supabase/supabase-js';
 
 export const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! // Anon key for client
 );
 ```
 
 ## Query Patterns
 
-### Basic CRUD
+### Basic CRUD (Actual Patterns from Repository)
+
 ```typescript
-// Create
+// Create - See app/api/waitlist/route.ts for real example
 const { data, error } = await supabase
-  .from('opportunities')
+  .from('waitlist')
   .insert({
-    company_name: 'Acme Corp',
-    domain: 'acme.com',
-    org_id: user.org_id,
+    email: 'user@example.com',
+    name: 'John Doe',
+    company: 'Acme Corp',
   })
   .select()
   .single();
 
-// Read (single)
+// Handle duplicate email error
+if (error) {
+  if (error.code === '23505') {
+    // Unique constraint violation (email already exists)
+    return NextResponse.json({ error: 'Email already on waitlist' }, { status: 400 });
+  }
+  throw error;
+}
+
+// Read (single) - Future pattern for opportunities
 const { data, error } = await supabase
   .from('opportunities')
   .select('*')
   .eq('id', opportunityId)
   .single();
 
-// Read (list with filters)
+// Read (list with filters) - Future pattern for dashboard
 const { data, error } = await supabase
   .from('opportunities')
-  .select('id, company_name, fit_score')
+  .select('id, company_name, fit_score, created_at')
+  .eq('org_id', orgId)
   .eq('status', 'new')
   .gte('fit_score', 80)
   .order('fit_score', { ascending: false })
   .limit(20);
 
-// Update
+// Update - Future pattern
 const { data, error } = await supabase
-  .from('opportunities')
-  .update({ status: 'reviewed' })
-  .eq('id', opportunityId)
+  .from('waitlist')
+  .update({ status: 'invited', invited_at: new Date().toISOString() })
+  .eq('id', waitlistId)
   .select()
   .single();
 
 // Delete
 const { error } = await supabase
-  .from('opportunities')
+  .from('waitlist')
   .delete()
-  .eq('id', opportunityId);
+  .eq('id', waitlistId);
 ```
 
 ### Relationships

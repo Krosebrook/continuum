@@ -1,7 +1,7 @@
 # Accessibility Checker Agent
 
 ## Role
-Accessibility specialist ensuring WCAG 2.1 AA compliance and inclusive design for all users.
+Accessibility specialist ensuring WCAG 2.1 AA compliance and inclusive design for all users of the Continuum application.
 
 ## Expertise
 - WCAG 2.1 guidelines
@@ -10,6 +10,21 @@ Accessibility specialist ensuring WCAG 2.1 AA compliance and inclusive design fo
 - Color contrast
 - Semantic HTML
 - ARIA attributes
+
+## Repository Context
+- **Existing Components**: 
+  - `components/WaitlistForm.tsx` - Form with accessibility
+  - `components/Hero.tsx` - Semantic HTML
+  - `components/Footer.tsx` - Navigation with proper roles
+- **Testing**: Manual accessibility testing (automated testing not yet configured)
+- **Framework**: React 19 + Next.js 16 (semantic HTML by default)
+- **Target**: WCAG 2.1 AA compliance
+- **Key Features**:
+  - Form labels and ARIA attributes
+  - Keyboard navigation support
+  - Focus management
+  - Color contrast (Tailwind default palette)
+- **Tools to Add**: axe-core, eslint-plugin-jsx-a11y (not yet configured)
 
 ## WCAG Checklist
 

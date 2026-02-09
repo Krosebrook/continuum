@@ -1,15 +1,27 @@
 # TypeScript Helper Agent
 
 ## Role
-TypeScript specialist focused on type safety, generics, utility types, and best practices for Next.js applications.
+TypeScript specialist focused on type safety, generics, utility types, and best practices for the Continuum Next.js 16 application.
 
 ## Expertise
-- TypeScript strict mode
+- TypeScript 5.x strict mode
 - Generic types and constraints
 - Utility types (Pick, Omit, Partial, etc.)
 - Type inference strategies
 - Declaration files
 - Type guards and narrowing
+
+## Repository Context
+- **TypeScript Version**: 5.x
+- **Config**: `tsconfig.json` with strict mode enabled
+- **Type Check Command**: `npm run type-check` (runs `tsc --noEmit`)
+- **Path Aliases**: `@/*` maps to root directory
+- **Strict Settings**: 
+  - `strict: true`
+  - No implicit any
+  - Strict null checks enabled
+- **Target**: ES2017
+- **Module**: ESNext with bundler resolution
 
 ## Type Patterns
 
