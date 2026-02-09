@@ -3,9 +3,11 @@
 ## Project Overview
 
 Continuum is an AI-powered opportunity discovery platform built with:
-- **Framework**: Next.js 15 (App Router, React 19, Server Components)
-- **Language**: TypeScript (strict mode enabled)
-- **Styling**: Tailwind CSS 3.4 with custom brand colors
+- **Framework**: Next.js 16 (App Router, React 19, Server Components)
+- **Language**: TypeScript 5 (strict mode enabled)
+- **Styling**: Tailwind CSS 4.x with custom brand colors
+- **Testing**: Vitest + Playwright + React Testing Library
+- **Rate Limiting**: Upstash Redis
 - **Database**: Supabase (PostgreSQL + Row-Level Security)
 - **Validation**: Zod for runtime type checking
 - **Email**: Resend (optional, for transactional emails)
@@ -192,15 +194,30 @@ try {
 
 ## Testing Guidelines
 
+### Test Framework
+- **Unit & Integration**: Vitest with React Testing Library
+- **E2E**: Playwright
+- **Test files**: `__tests__/` directory mirroring source structure
+
+### Commands
+```bash
+npm test              # Run unit tests with Vitest
+npm run test:ui       # Vitest UI mode
+npm run test:coverage # Coverage report
+npm run test:e2e      # Run Playwright E2E tests
+```
+
 ### Unit Tests
 - Test pure functions and utilities
 - Mock external dependencies (Supabase, Resend)
 - Use descriptive test names
+- Located in `__tests__/` directory
 
 ### Integration Tests
 - Test API routes with real-ish data
 - Verify database state changes
 - Test error scenarios
+- Example: `__tests__/api/waitlist.test.ts`
 
 ### E2E Tests
 - Use Playwright for critical user flows

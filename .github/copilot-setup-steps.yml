@@ -1,0 +1,44 @@
+# GitHub Copilot Setup Steps
+# Environment setup for custom agents to build and test the project
+
+steps:
+  - name: Checkout code
+    uses: actions/checkout@v4
+    
+  - name: Setup Node.js
+    uses: actions/setup-node@v4
+    with:
+      node-version: '20'
+      cache: 'npm'
+      
+  - name: Install dependencies
+    run: npm ci
+    
+  - name: Setup environment
+    run: |
+      cp .env.example .env.local || true
+      echo "Environment file created (mock values for CI)"
+    
+  - name: Verify setup
+    run: |
+      echo "✓ Node.js $(node --version)"
+      echo "✓ npm $(npm --version)"
+      echo "✓ Dependencies installed"
+      
+  - name: Run type check
+    run: npm run type-check
+    
+  - name: Run linter
+    run: npm run lint
+    continue-on-error: true
+    
+  - name: Build project
+    run: npm run build
+    env:
+      # Mock env vars for build
+      NEXT_PUBLIC_SUPABASE_URL: https://mock.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: mock_anon_key
+      
+  - name: Run tests
+    run: npm test
+    continue-on-error: true
