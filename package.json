@@ -39,10 +39,10 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.94.1",
+    "@supabase/supabase-js": "^2.97.0",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.36.1",
-    "isomorphic-dompurify": "^2.35.0",
+    "isomorphic-dompurify": "^3.0.0",
     "next": "16.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -63,7 +63,7 @@
     "eslint-config-next": "16.1.6",
     "jsdom": "^28.1.0",
     "postcss": "^8",
-    "tailwindcss": "^4.1.18",
+    "tailwindcss": "^4.2.1",
     "typescript": "^5",
     "vitest": "^4.0.18"
   }
