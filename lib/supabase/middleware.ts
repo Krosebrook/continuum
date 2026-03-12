@@ -61,10 +61,6 @@ export async function updateSession(request: NextRequest) {
 export function isProtectedRoute(pathname: string): boolean {
   const protectedRoutes = [
     '/dashboard',
-    '/settings',
-    '/icps',
-    '/opportunities',
-    '/analytics',
   ];
 
   return protectedRoutes.some(route => pathname.startsWith(route));

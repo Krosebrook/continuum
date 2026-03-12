@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST, GET } from '@/app/api/waitlist/route';
 
 // Mock dependencies
-vi.mock('@/lib/supabase-server', () => ({
+vi.mock('@/lib/supabase/server', () => ({
   getSupabaseServerClient: vi.fn(() => ({
     from: vi.fn(() => ({
       insert: vi.fn(() => ({
@@ -135,7 +135,7 @@ describe('POST /api/waitlist', () => {
 
   it('should handle database errors gracefully and not expose internal details', async () => {
     // Mock database error
-    const { getSupabaseServerClient } = await import('@/lib/supabase-server');
+    const { getSupabaseServerClient } = await import('@/lib/supabase/server');
     vi.mocked(getSupabaseServerClient).mockReturnValueOnce({
       from: vi.fn(() => ({
         insert: vi.fn(() => ({
@@ -166,7 +166,7 @@ describe('POST /api/waitlist', () => {
 
   it('should handle duplicate email (23505 error)', async () => {
     // Mock duplicate constraint violation
-    const { getSupabaseServerClient } = await import('@/lib/supabase-server');
+    const { getSupabaseServerClient } = await import('@/lib/supabase/server');
     vi.mocked(getSupabaseServerClient).mockReturnValueOnce({
       from: vi.fn(() => ({
         insert: vi.fn(() => ({
