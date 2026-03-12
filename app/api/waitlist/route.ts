@@ -3,11 +3,10 @@ import { Resend } from 'resend';
 import { z } from 'zod';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
-import { createClient } from '@supabase/supabase-js';
 import DOMPurify from 'isomorphic-dompurify';
 import { waitlistSchema } from '@/lib/schemas/waitlist';
 import { getWaitlistWelcomeEmail } from '@/lib/emails/waitlist-welcome';
-import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 // PostgreSQL error codes
 const POSTGRES_UNIQUE_VIOLATION = '23505';
@@ -52,9 +51,12 @@ export async function POST(request: Request) {
     // Rate limiting (if configured)
     const ratelimiter = getRateLimiter();
     if (ratelimiter) {
-      // Extract IP from headers, handling proxy headers safely
-      const forwardedFor = request.headers.get('x-forwarded-for');
-      const ip = forwardedFor?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || '127.0.0.1';
+      // Extract IP — prefer Vercel's injected x-real-ip (unforgeable) over
+      // x-forwarded-for which can be set by the caller.
+      const ip =
+        request.headers.get('x-real-ip') ||
+        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+        '127.0.0.1';
       
       const { success, limit, reset, remaining } = await ratelimiter.limit(ip);
       

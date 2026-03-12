@@ -30,9 +30,12 @@ export function useAuth() {
 
         // Handle sign in/out
         if (event === 'SIGNED_IN' && session) {
-          // Set cookies for server-side auth
-          document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
-          document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
+          // Set cookies for server-side auth. Note: these cannot be HttpOnly
+          // (browser JS limitation); the middleware refreshes them as HttpOnly
+          // on the next request via lib/supabase/middleware.ts.
+          const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+          document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
+          document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax${secure}`;
         } else if (event === 'SIGNED_OUT') {
           // Clear cookies
           document.cookie = 'sb-access-token=; path=/; max-age=0';
