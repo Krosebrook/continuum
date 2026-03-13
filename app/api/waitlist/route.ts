@@ -28,8 +28,6 @@ function getRateLimiter() {
   });
 }
 
-// Supabase client is now imported from lib/supabase-server.ts
-
 let resendClient: Resend | null | undefined;
 
 function getResendClient() {
