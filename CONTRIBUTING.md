@@ -1,361 +1,242 @@
 # Contributing to Continuum
 
-Thank you for your interest in contributing to Continuum! This document provides guidelines and instructions for contributing to the project.
+Thank you for contributing. This guide covers development setup, code standards, git workflow, testing, and known gotchas.
 
-## 🎯 Table of Contents
+---
 
-- [Code of Conduct](#code-of-conduct)
-- [Getting Started](#getting-started)
-- [Development Workflow](#development-workflow)
-- [Coding Standards](#coding-standards)
-- [Pull Request Process](#pull-request-process)
-- [Testing Guidelines](#testing-guidelines)
-- [Documentation](#documentation)
-- [Questions](#questions)
+## Table of Contents
 
-## 📜 Code of Conduct
+1. [Development Setup](#development-setup)
+2. [Project Structure](#project-structure)
+3. [Code Standards](#code-standards)
+4. [Git Workflow](#git-workflow)
+5. [Testing Guide](#testing-guide)
+6. [Known Gotchas](#known-gotchas)
 
-This project adheres to a code of conduct. By participating, you are expected to uphold this code. Please see [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) for details.
+---
 
-## 🚀 Getting Started
+## Development Setup
 
 ### Prerequisites
 
-- **Node.js** 18.x or higher
-- **npm** 9.x or higher
-- **Supabase** account (for database)
-- **Git** for version control
+- Node.js ≥ 20.x (LTS)
+- npm ≥ 10.x
+- A [Supabase](https://supabase.com) project (free tier is fine)
+- (Optional) [Resend](https://resend.com) account for email testing
+- (Optional) [Upstash Redis](https://upstash.com) for rate limiting
 
-### Local Development Setup
+### First-Time Setup
 
-1. **Fork the repository** on GitHub
+```bash
+# 1. Clone the repository
+git clone https://github.com/your-org/continuum.git
+cd continuum
 
-2. **Clone your fork**:
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/continuum.git
-   cd continuum
-   ```
+# 2. Install dependencies
+npm install
 
-3. **Add upstream remote**:
-   ```bash
-   git remote add upstream https://github.com/Krosebrook/continuum.git
-   ```
+# 3. Copy env template and fill in values
+cp .env.example .env.local
+# Required: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
 
-4. **Install dependencies**:
-   ```bash
-   npm install
-   ```
+# 4. Apply the database schema
+# Go to your Supabase dashboard → SQL Editor → paste and run supabase/schema.sql
 
-5. **Set up environment variables**:
-   ```bash
-   cp .env.example .env.local
-   # Edit .env.local with your Supabase credentials
-   ```
+# 5. Start the dev server
+npm run dev
+# → http://localhost:3000
+```
 
-6. **Set up the database**:
-   - Create a Supabase project
-   - Run the SQL in `supabase/schema.sql` in the SQL Editor
+You do **not** need Resend or Upstash for local development. The app degrades gracefully without them.
 
-7. **Start the development server**:
-   ```bash
-   npm run dev
-   ```
+### Verifying Your Setup
 
-8. **Verify the setup**:
-   - Open http://localhost:3000
-   - Test the waitlist form submission
+```bash
+# TypeScript — should report 0 errors
+npm run type-check
 
-## 🔄 Development Workflow
+# Lint — should report 0 errors
+npm run lint
 
-### Branching Strategy
+# Unit tests
+npm test
+# Expected: 17 tests, 11 pass, 6 fail (WaitlistForm failures are pre-existing — see Known Gotchas)
+```
 
-- `main` - Production-ready code
-- `feature/*` - New features
-- `fix/*` - Bug fixes
-- `docs/*` - Documentation updates
-- `refactor/*` - Code refactoring
+---
 
-### Working on a Feature
+## Project Structure
 
-1. **Sync with upstream**:
-   ```bash
-   git checkout main
-   git pull upstream main
-   git push origin main
-   ```
+```
+app/            Next.js App Router (pages + API routes)
+components/     React components
+lib/            Shared utilities, hooks, schemas, email templates
+  supabase/     Supabase clients (client.ts, server.ts, middleware.ts)
+  hooks/        React hooks (useAuth.ts)
+  schemas/      Zod validation schemas
+  emails/       Resend email templates
+supabase/       Database schema SQL
+__tests__/      Vitest test suite (mirrors source structure)
+docs/           Project documentation
+  adr/          Architecture Decision Records
+```
 
-2. **Create a feature branch**:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+---
 
-3. **Make your changes** following the [coding standards](#coding-standards)
-
-4. **Test your changes**:
-   ```bash
-   npm run lint         # Lint code
-   npm run type-check   # Type check
-   npm run build        # Test build
-   npm test             # Run tests (when available)
-   ```
-
-5. **Commit your changes**:
-   ```bash
-   git add .
-   git commit -m "feat: add your feature description"
-   ```
-
-   Follow [Conventional Commits](https://www.conventionalcommits.org/):
-   - `feat:` - New feature
-   - `fix:` - Bug fix
-   - `docs:` - Documentation changes
-   - `style:` - Formatting changes
-   - `refactor:` - Code restructuring
-   - `test:` - Adding tests
-   - `chore:` - Maintenance tasks
-
-6. **Push to your fork**:
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-
-7. **Open a Pull Request** on GitHub
-
-## 💻 Coding Standards
+## Code Standards
 
 ### TypeScript
 
-- **Strict mode enabled** - No `any` types allowed
-- **Explicit return types** for all functions
-- Use **interfaces** for object shapes
-- Use **types** for unions and intersections
-- Prefer `unknown` over `any` for truly unknown types
+- **Strict mode is enabled.** No `any` types. Use `unknown` for truly unknown types.
+- Define explicit return types for all exported functions.
+- Use `interface` for object shapes; `type` for unions, intersections, and aliases.
+- Use `as const` for literal types.
 
 ```typescript
 // ✅ Good
-interface User {
-  id: string;
+interface WaitlistEntry {
   email: string;
-  role: 'owner' | 'admin' | 'member';
+  status: 'pending' | 'invited' | 'converted';
 }
 
-function getUser(id: string): Promise<User | null> {
-  // implementation
-}
+async function getEntry(id: string): Promise<WaitlistEntry | null> { ... }
 
 // ❌ Bad
-function getUser(id: any): any {
-  // implementation
+async function getEntry(id: any): any { ... }
+```
+
+### Zod Validation
+
+All API inputs must be validated with a Zod schema before use. Schemas live in `lib/schemas/`.
+
+```typescript
+const schema = z.object({
+  email: z.string().email(),
+  name: z.string().min(2).max(100).optional(),
+});
+const result = schema.safeParse(body);
+if (!result.success) {
+  return NextResponse.json({ error: result.error.errors[0].message }, { status: 400 });
 }
 ```
 
 ### React Components
 
-- Use **function components** with TypeScript
-- Define **explicit prop interfaces**
-- Use **Server Components** by default
-- Only use `'use client'` when necessary
-- Prefer **controlled components** for forms
-
-```typescript
-// ✅ Good
-interface ButtonProps {
-  variant?: 'primary' | 'secondary';
-  children: React.ReactNode;
-  onClick?: () => void;
-}
-
-export function Button({ variant = 'primary', children, onClick }: ButtonProps) {
-  return (
-    <button className={cn(baseStyles, variantStyles[variant])} onClick={onClick}>
-      {children}
-    </button>
-  );
-}
-```
-
-### Styling
-
-- Use **Tailwind CSS utility classes**
-- **Mobile-first** responsive design (`sm:`, `md:`, `lg:`)
-- Use **brand colors** from theme (`brand-500`, `brand-600`)
-- Avoid custom CSS classes
-
-```tsx
-// ✅ Good
-<div className="p-4 sm:p-6 lg:p-8 bg-white rounded-lg shadow-sm">
-
-// ❌ Bad - arbitrary values
-<div className="p-[17px] bg-[#0284c7]">
-```
+- Server Components by default. Add `'use client'` only when interactivity is needed.
+- Always define a `Props` interface; avoid `React.FC<any>`.
+- Use Tailwind utility classes. No arbitrary values (`p-[17px]`).
+- Mobile-first responsive design (`sm:`, `md:`, `lg:`).
 
 ### API Routes
 
-- **Validate all input** with Zod schemas
-- Return **proper HTTP status codes**
-- Handle errors gracefully with try-catch
-- Use `NextResponse.json()` for responses
-- **Sanitize error messages** before returning
+- Validate all input with Zod before touching the database.
+- Return proper HTTP status codes (200, 201, 400, 401, 409, 429, 500).
+- Use `try/catch` and return `{ error: string }` on failure.
+- Never expose internal error messages to clients.
 
-```typescript
-// ✅ Good
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const validated = schema.parse(body);
-    
-    // Process request...
-    
-    return NextResponse.json({ success: true }, { status: 201 });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: error.errors[0].message },
-        { status: 400 }
-      );
-    }
-    
-    console.error('API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
+### File Naming
+
+- Components: `PascalCase.tsx` (e.g., `WaitlistForm.tsx`)
+- Utilities/hooks: `camelCase.ts` (e.g., `useAuth.ts`)
+- Route handlers: `route.ts` (Next.js convention)
+- Tests: `<SourceFile>.test.ts[x]` in `__tests__/`
+
+---
+
+## Git Workflow
+
+### Branch Names
+
+```
+feature/add-icp-form
+fix/waitlist-validation
+docs/update-api-reference
+chore/upgrade-dependencies
 ```
 
-### Database
+### Commit Messages
 
-- Use **snake_case** for table and column names
-- Add **indexes** for foreign keys and frequently filtered columns
-- Always define **RLS policies** for multi-tenant tables
-- Use **parameterized queries** (Supabase handles this)
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
-## 📥 Pull Request Process
+```
+type(scope): short description
 
-### Before Submitting
-
-1. **Update documentation** if you changed APIs or added features
-2. **Run all checks**:
-   ```bash
-   npm run lint
-   npm run type-check
-   npm run build
-   npm test  # when tests are available
-   ```
-3. **Test manually** in your browser
-4. **Update CHANGELOG.md** if applicable
-
-### PR Template
-
-When opening a PR, fill out the template completely:
-
-- **Summary**: Brief description of changes
-- **Changes**: List of key modifications
-- **Type of Change**: Bug fix, feature, docs, etc.
-- **Testing**: How you tested your changes
-- **Screenshots**: For UI changes
-- **Related Issues**: Link to issues
-
-### Review Process
-
-1. **Automated checks** must pass (linting, type checking, build)
-2. **Code review** by at least one maintainer
-3. **Address feedback** and push updates
-4. **Approval** from maintainer
-5. **Merge** by maintainer (squash merge preferred)
-
-### After Merge
-
-- Your branch will be automatically deleted
-- Changes will be deployed to staging (if configured)
-- Production deployment after additional testing
-
-## 🧪 Testing Guidelines
-
-### Unit Tests (when available)
-
-- Test **pure functions** and utilities
-- Mock **external dependencies** (Supabase, Resend)
-- Use **descriptive test names**
-
-```typescript
-describe('validateEmail', () => {
-  it('should accept valid email addresses', () => {
-    expect(validateEmail('test@example.com')).toBe(true);
-  });
-
-  it('should reject invalid email addresses', () => {
-    expect(validateEmail('invalid')).toBe(false);
-  });
-});
+Body (optional): why, not what.
 ```
 
-### Integration Tests
+Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
-- Test **API routes** with realistic data
-- Verify **database state** changes
-- Test **error scenarios**
-
-### E2E Tests (when available)
-
-- Use **Playwright** for critical user flows
-- Test **form submissions** and navigation
-- Verify **UI renders** correctly
-
-## 📚 Documentation
-
-### Code Comments
-
-- Add comments for **complex logic** only
-- Use **JSDoc** for public functions
-- Keep comments **up-to-date** with code
-
-```typescript
-/**
- * Sanitizes user input to prevent XSS attacks
- * @param input - Raw user input string
- * @returns Sanitized string safe for HTML rendering
- */
-function sanitizeInput(input: string): string {
-  return DOMPurify.sanitize(input.trim());
-}
+**Always include the Co-authored-by trailer for AI-assisted commits:**
+```
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 ```
 
-### Markdown Documentation
+### Pull Requests
 
-- Update **README.md** for user-facing changes
-- Update **ARCHITECTURE.md** for structural changes
-- Update **API.md** for API changes
-- Keep **CHANGELOG.md** current
+1. Branch from `main`
+2. Keep PRs focused — one concern per PR
+3. Ensure `npm run type-check && npm run lint && npm test` pass locally before opening
+4. Fill in the PR template
+5. Request review from at least one other engineer
 
-### Inline Documentation
+---
 
-- Use **clear variable names** (documentation through clarity)
-- Add **type annotations** for complex types
-- Document **non-obvious** behavior
+## Testing Guide
 
-## ❓ Questions
+### Running Tests
 
-### Where to Ask
+```bash
+npm test                  # Vitest — all unit tests
+npm run test:coverage     # Vitest with coverage report
+npm run test:e2e          # Playwright E2E (requires dev server running)
+```
 
-- **General questions**: GitHub Discussions
-- **Bug reports**: GitHub Issues
-- **Security issues**: See [SECURITY.md](./SECURITY.md)
-- **Direct contact**: hello@continuum.dev
+### Writing Tests
 
-### Before Asking
+Tests live in `__tests__/` mirroring the source structure:
+- `__tests__/api/waitlist.test.ts` for `app/api/waitlist/route.ts`
+- `__tests__/components/WaitlistForm.test.tsx` for `components/WaitlistForm.tsx`
 
-1. **Search existing issues** and discussions
-2. **Check documentation** (README, ARCHITECTURE, API docs)
-3. **Review code examples** in the repository
-4. **Try debugging** with console logs
+**Unit tests:** Test pure functions and Zod schemas. Mock external dependencies (Supabase, Resend, Upstash).
 
-## 🎁 Recognition
+**Integration tests (API routes):** Use `vitest` with mocked Supabase. See `__tests__/api/waitlist.test.ts` for the pattern.
 
-Contributors will be:
-- Listed in the project README
-- Mentioned in release notes
-- Credited in CHANGELOG.md
+**E2E:** Playwright tests go in `__tests__/e2e/`. Currently no E2E tests are written; the config is in place.
 
-Thank you for contributing to Continuum! 🚀
+### Test Coverage Targets
+
+| Area | Current | Target |
+|------|---------|--------|
+| API routes | ~90% | ≥ 90% |
+| Components | ~15% | ≥ 80% |
+| Lib utilities | ~60% | ≥ 80% |
+
+---
+
+## Known Gotchas
+
+### 1. WaitlistForm tests fail (React 19 + RTL timing)
+
+6 out of 7 tests in `__tests__/components/WaitlistForm.test.tsx` fail with async timing errors. This is a pre-existing issue caused by React 19's concurrent rendering model and React Testing Library 16's async handling.
+
+**Workaround:** These failures are expected and non-blocking. Do not spend time debugging them unless you are specifically working on the RTL upgrade (see `docs/ROADMAP.md` T1-1).
+
+### 2. `lib/supabase-server.ts` — legacy orphaned file
+
+This file exists at `lib/supabase-server.ts` but is never imported. The canonical server-side Supabase client is at `lib/supabase/server.ts`. Do not import from the legacy file. Deletion is pending approval (`docs/DEAD-CODE-TRIAGE.md`).
+
+### 3. Rate limiting requires Upstash env vars
+
+If `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are not set, rate limiting is silently skipped. This is intentional for local development but means the `POST /api/waitlist` endpoint is unprotected locally.
+
+### 4. Email confirmation requires Resend env vars
+
+If `RESEND_API_KEY` is not set, waitlist signups succeed but no confirmation email is sent. The API returns `201` either way.
+
+### 5. Supabase `service_role` key is server-side only
+
+`SUPABASE_SERVICE_ROLE_KEY` bypasses all Row-Level Security. Never use it in client components or expose it in `NEXT_PUBLIC_*` variables.
+
+### 6. `flatted` DoS vulnerability (transitive via Next.js)
+
+`npm audit` will report a high-severity vulnerability in `flatted < 3.4.0`. This is a transitive dependency of Next.js and cannot be fixed without a major framework upgrade. CI is configured with `--audit-level=high --continue-on-error`. Do not be alarmed; it is tracked in `docs/SECURITY.md` and `docs/ROADMAP.md` T2-2.
