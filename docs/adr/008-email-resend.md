@@ -31,7 +31,7 @@ The waitlist flow requires sending a welcome/confirmation email to new subscribe
 ## Current Template
 
 `lib/emails/waitlist-welcome.ts` generates a plain HTML welcome email with:
-- Personalised greeting (if `name` provided)
+- Personalized greeting (if `name` provided)
 - Confirmation that the user is on the waitlist
 - Unsubscribe link (`/unsubscribe?email=<encoded>`)
 

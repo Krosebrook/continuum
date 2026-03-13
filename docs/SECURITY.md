@@ -25,7 +25,7 @@
 |---|----------|--------|----------|---------|
 | A01 | Broken Access Control | ✅ Mitigated | `middleware.ts` protects all `/dashboard/*`; Supabase RLS enforces `org_id` scoping on all tenant tables | No issues found |
 | A02 | Cryptographic Failures | ✅ Mitigated | HSTS enabled; TLS enforced by Vercel; Supabase handles password hashing (bcrypt); JWT tokens used (not custom crypto) | No issues found |
-| A03 | Injection | ✅ Mitigated | Supabase JS client uses parameterised queries; user input sanitised with `isomorphic-dompurify` before DB insert; Zod validation on all API inputs | No issues found |
+| A03 | Injection | ✅ Mitigated | Supabase JS client uses parameterized queries; user input sanitized with `isomorphic-dompurify` before DB insert; Zod validation on all API inputs | No issues found |
 | A04 | Insecure Design | ✅ Mitigated | Multi-tenant isolation at DB layer (RLS); service-role key server-side only; optional services (Resend, Upstash) degrade gracefully | No issues found |
 | A05 | Security Misconfiguration | ✅ Mitigated | CSP, HSTS, X-Frame-Options, X-Content-Type-Options set in `vercel.json`; no default credentials; `.env.local` gitignored | No issues found |
 | A06 | Vulnerable & Outdated Components | ⚠️ Partial | `npm audit` passes at `--audit-level=moderate`; 1 high-severity transitive dep (`flatted < 3.4.0`) with no available fix | See §Known Vulnerabilities |
