@@ -1,0 +1,244 @@
+openapi: "3.1.0"
+
+info:
+  title: Continuum API
+  version: "0.2.0"
+  description: |
+    AI-powered opportunity discovery platform — public and internal API.
+  contact:
+    url: https://continuum.vercel.app
+  license:
+    name: Proprietary
+
+servers:
+  - url: https://continuum.vercel.app
+    description: Production
+  - url: http://localhost:3000
+    description: Local development
+
+tags:
+  - name: Waitlist
+    description: Pre-launch waitlist signup
+  - name: Auth
+    description: Authentication endpoints
+  - name: Ops
+    description: Operational / cron endpoints
+
+paths:
+  /api/waitlist:
+    post:
+      operationId: joinWaitlist
+      summary: Join the waitlist
+      tags: [Waitlist]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WaitlistRequest"
+            example:
+              email: alice@example.com
+              name: Alice
+              company: Acme Corp
+      responses:
+        "201":
+          description: Successfully joined
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WaitlistSuccess"
+              example:
+                message: "Successfully joined the waitlist!"
+                email: alice@example.com
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WaitlistSuccess"
+              example:
+                message: "You're already on the waitlist!"
+                email: alice@example.com
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+    get:
+      operationId: waitlistHealthCheck
+      summary: Waitlist route health check
+      tags: [Waitlist]
+      responses:
+        "200":
+          description: Route is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  route:
+                    type: string
+                    example: waitlist
+
+  /api/cron/health:
+    get:
+      operationId: cronHealth
+      summary: Cron health check (runs hourly)
+      tags: [Ops]
+      security:
+        - bearerCronSecret: []
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2026-03-12T14:00:00.000Z"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/auth/signout:
+    post:
+      operationId: signOut
+      summary: Sign out the current user
+      description: |
+        Clears `sb-access-token` and `sb-refresh-token` cookies and
+        redirects to `/login`.
+      tags: [Auth]
+      security:
+        - cookieAuth: []
+      responses:
+        "302":
+          description: Redirects to /login
+          headers:
+            Location:
+              schema:
+                type: string
+                example: /login
+            Set-Cookie:
+              schema:
+                type: string
+                description: Expired sb-access-token and sb-refresh-token cookies
+
+  /auth/callback:
+    get:
+      operationId: authCallback
+      summary: OAuth / magic-link callback
+      description: |
+        Exchanges the short-lived `code` for a session, sets auth cookies,
+        and redirects to `/dashboard/opportunities`.
+      tags: [Auth]
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: One-time PKCE code from Supabase
+      responses:
+        "302":
+          description: Redirects to /dashboard/opportunities on success
+          headers:
+            Location:
+              schema:
+                type: string
+                example: /dashboard/opportunities
+        "302 (error)":
+          description: Redirects to /login?error=auth_callback_failed on failure
+
+components:
+  schemas:
+    WaitlistRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          description: Valid email address
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Subscriber's name (optional)
+        company:
+          type: string
+          maxLength: 100
+          description: Company name (optional)
+
+    WaitlistSuccess:
+      type: object
+      properties:
+        message:
+          type: string
+        email:
+          type: string
+          format: email
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "Invalid email address"
+
+    Unauthorized:
+      description: Missing or invalid authorization
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "Unauthorized"
+
+    TooManyRequests:
+      description: Rate limit exceeded (3 req/hr per IP)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "Too many requests. Please try again later."
+
+    InternalError:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "Internal server error"
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sb-access-token
+
+    bearerCronSecret:
+      type: http
+      scheme: bearer
+      description: Value of the CRON_SECRET environment variable

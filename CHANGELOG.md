@@ -1,173 +1,91 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to Continuum are documented here.  
+Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).  
+Versioning follows [Semantic Versioning](https://semver.org/).
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+---
 
 ## [Unreleased]
 
 ### Added
-- Comprehensive three-persona audit of ACTION_PLAN.md (Developer, Security, DevOps)
-- ACTION_PLAN_AUDIT.md - 33KB detailed audit report
-- AUDIT_EXECUTIVE_SUMMARY_FEB2026.md - Executive summary for stakeholders
-- Comprehensive documentation suite (CONTRIBUTING.md, SECURITY.md, ARCHITECTURE.md, API.md)
-- Status badges in README.md
-- Code of Conduct
 
-### Fixed
-- Removed duplicate Content-Security-Policy header in vercel.json
-- Improved CSP configuration for better security
+**Infrastructure & Tooling**
+- Next.js 16.1.6 (App Router) with React 19 and TypeScript 5 strict mode
+- Tailwind CSS 4.x with custom brand colour tokens
+- ESLint configuration (`eslint.config.mjs`)
+- Vitest 4.x test suite with React Testing Library 16 (`vitest.config.ts`, `vitest.setup.ts`)
+- Playwright E2E configuration (`playwright.config.ts`)
+- Vercel deployment configuration with security headers, CORS, and cron jobs (`vercel.json`)
+- TypeScript path aliases (`@/*` → project root)
 
-### Security
-- Verified zero vulnerabilities in all dependencies (npm audit)
-- Confirmed OWASP Top 10 (2026) compliance
-- Validated all security measures from ACTION_PLAN.md
-- Overall security score: 9/10 (Excellent)
+**Landing Page & Waitlist**
+- Hero section (`components/Hero.tsx`) with value proposition and feature highlights
+- Waitlist signup form (`components/WaitlistForm.tsx`) with client-side validation and error handling
+- Footer component (`components/Footer.tsx`)
+- `POST /api/waitlist` — join waitlist with Zod validation, DOMPurify sanitisation, Upstash rate limiting (3 req/hr/IP), Supabase insert, Resend welcome email
+- `GET /api/waitlist` — route health check
+- `/unsubscribe` page for waitlist unsubscribe flow
+- Waitlist Zod schema (`lib/schemas/waitlist.ts`)
+- Resend welcome email template (`lib/emails/waitlist-welcome.ts`)
 
-## [0.1.0] - 2026-01-12
+**Authentication**
+- Cookie-based JWT authentication (see ADR-003)
+- `middleware.ts` — protects all `/dashboard/*` routes, refreshes tokens on each request
+- `lib/supabase/middleware.ts` — session refresh helper
+- `lib/hooks/useAuth.ts` — browser auth state hook with `SIGNED_IN`/`SIGNED_OUT` event handling
+- `/login`, `/signup`, `/forgot-password`, `/reset-password` pages
+- `GET /auth/callback` — PKCE code exchange for magic links and OAuth
+- `POST /api/auth/signout` — cookie clear + redirect
 
-### Added
-- Initial landing page with hero section
-- Waitlist form with email validation
-- Supabase database integration with RLS policies
-- Resend email integration (optional)
-- Rate limiting with Upstash Redis
-- Responsive mobile-first design with Tailwind CSS 4.x
-- TypeScript strict mode configuration
-- Security headers (CSP, HSTS, X-Frame-Options, etc.)
-- GitHub Actions CI/CD workflows
-- Dependabot configuration
-- Custom GitHub Copilot agents
-- Comprehensive README with quick start guide
+**Dashboard (Stub)**
+- `/dashboard/opportunities` — opportunities list page (stub)
+- `/dashboard/icps` — ICP list page (stub)
+- `/dashboard/icps/new` — new ICP form (stub)
+- `/dashboard/icps/[id]/edit` — edit ICP form (stub)
+- `/dashboard/analytics` — analytics page (stub)
+- `/dashboard/settings` — settings page (stub)
 
-### Security
-- Row-Level Security policies on database tables
-- Input validation with Zod schemas
-- Input sanitization with DOMPurify
-- Rate limiting (3 requests per hour per IP)
-- Security headers configured in vercel.json
-- Error message sanitization to prevent information disclosure
+**Supabase / Database**
+- `lib/supabase/client.ts` — browser Supabase client
+- `lib/supabase/server.ts` — server-side Supabase client with `persistSession: false`, `autoRefreshToken: false`
+- `supabase/schema.sql` — full PostgreSQL schema with 8 tables and RLS policies
 
-### Changed
-- Upgraded to Next.js 16.1.1 from 15.x
-- Upgraded to Tailwind CSS 4.x
-- Upgraded to Zod 4.x
+**Operations**
+- `GET /api/cron/health` — hourly cron health check with Bearer token auth
+- Vercel Cron configured to call `/api/cron/health` at `0 * * * *`
 
-### Documentation
-- README.md with deployment guide
-- Database schema documentation (schema.sql)
-- Environment variable examples (.env.example)
-- PR template
-- Issue templates
-- CODEOWNERS file
+**Documentation**
+- `docs/ARCHITECTURE.md` — system components, auth flow, deployment topology
+- `docs/API.md` — full API reference
+- `docs/openapi.yaml` — OpenAPI 3.1 spec
+- `docs/DATABASE.md` — schema reference for all 8 tables
+- `docs/PRD.md` — product requirements (reverse-engineered)
+- `docs/ROADMAP.md` — WSJF-scored technical roadmap
+- `docs/DEAD-CODE-TRIAGE.md` — dead code audit
+- `docs/RUNBOOK.md` — operational procedures
+- `docs/SECURITY.md` — OWASP checklist, vulnerability tracking
+- `docs/AUDIT-REPORT.md` — audit findings
+- `docs/adr/` — 8 Architecture Decision Records (ADR-001 through ADR-008)
 
----
+### Tests
 
-## Version History
+- `__tests__/api/waitlist.test.ts` — 10/10 passing ✅
+- `__tests__/components/WaitlistForm.test.tsx` — 1/7 passing ⚠️ (React 19 + RTL timing; pre-existing)
 
-### [0.1.0] - Initial Release
-**Release Date**: January 12, 2026
+### Known Issues
 
-**Highlights**:
-- Production-ready landing page
-- Waitlist functionality with email capture
-- Full database schema for future MVP features
-- Security-first architecture with RLS
-- Comprehensive documentation
-
-**Tech Stack**:
-- Next.js 16.1.1
-- React 19.0.0
-- TypeScript 5.x
-- Tailwind CSS 4.1.18
-- Supabase 2.39.3
-- Zod 4.3.5
-- Resend 6.7.0
-
-**Known Limitations**:
-- No user authentication yet (planned for v0.2.0)
-- No dashboard functionality (planned for v0.3.0)
-- No n8n integration (planned for v0.4.0)
-- Email service is optional
-
-**Migration Notes**:
-- First release, no migrations needed
+- `WaitlistForm.test.tsx`: 6/7 tests failing (React 19 + RTL async timing) — tracked in `docs/ROADMAP.md` T1-1
+- `flatted < 3.4.0`: transitive DoS via Next.js — no fix without major upgrade — tracked in `docs/ROADMAP.md` T2-2
+- `lib/supabase-server.ts`: orphaned legacy file, never imported — tracked in `docs/DEAD-CODE-TRIAGE.md`
 
 ---
 
-## Release Guidelines
+## [0.1.0] — 2026-03-12
 
-### Versioning Strategy
-
-We follow [Semantic Versioning](https://semver.org/):
-
-- **MAJOR** version (1.0.0): Incompatible API changes
-- **MINOR** version (0.1.0): New functionality in a backwards-compatible manner
-- **PATCH** version (0.1.1): Backwards-compatible bug fixes
-
-### Release Process
-
-1. Update CHANGELOG.md with new version
-2. Update version in package.json
-3. Create git tag: `git tag -a v0.1.0 -m "Release v0.1.0"`
-4. Push tag: `git push origin v0.1.0`
-5. GitHub Actions automatically creates release
-6. Vercel automatically deploys to production
-
-### Change Categories
-
-- **Added**: New features
-- **Changed**: Changes to existing functionality
-- **Deprecated**: Features that will be removed
-- **Removed**: Removed features
-- **Fixed**: Bug fixes
-- **Security**: Security-related changes
+- Initial commit: project scaffolded by Copilot agent (`3ac0ca0`)
 
 ---
 
-## Upcoming Releases
-
-### [0.2.0] - Planned (Q1 2026)
-- User authentication with Supabase Auth
-- Magic link login
-- Protected dashboard routes
-- User profile management
-
-### [0.3.0] - Planned (Q1 2026)
-- ICP (Ideal Customer Profile) builder
-- Multi-step form for ICP criteria
-- ICP list and management
-- ICP validation and scoring
-
-### [0.4.0] - Planned (Q2 2026)
-- n8n workflow integration
-- Opportunity discovery automation
-- Webhook endpoints for data sync
-- Background job processing
-
-### [0.5.0] - Planned (Q2 2026)
-- Opportunity dashboard
-- List view with filtering
-- Search functionality
-- Enrichment data display
-
-### [1.0.0] - Planned (Q2 2026)
-- Full MVP release
-- Email digest functionality
-- Analytics and reporting
-- API v1 finalization
-- Production hardening
-
----
-
-## Support
-
-Questions about releases or changelog?
-- Open an issue: [GitHub Issues](https://github.com/Krosebrook/continuum/issues)
-- Email: hello@continuum.dev
-
----
-
-[Unreleased]: https://github.com/Krosebrook/continuum/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/Krosebrook/continuum/releases/tag/v0.1.0
+[Unreleased]: https://github.com/your-org/continuum/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/your-org/continuum/releases/tag/v0.1.0
