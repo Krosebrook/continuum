@@ -212,9 +212,7 @@ npm run test:e2e        # Playwright E2E
 | Suite | Pass | Fail | Notes |
 |-------|------|------|-------|
 | `__tests__/api/waitlist.test.ts` | 10 | 0 | ✅ Full coverage |
-| `__tests__/components/WaitlistForm.test.tsx` | 1 | 6 | ⚠️ React 19 + RTL timing (pre-existing) |
-
-The WaitlistForm failures are a known pre-existing issue caused by React 19 + Testing Library async timing. They are non-blocking. See [Known Issues](#known-issues).
+| `__tests__/components/WaitlistForm.test.tsx` | 7 | 0 | ✅ All passing |
 
 ---
 
@@ -233,9 +231,7 @@ See [`DEPLOYMENT.md`](DEPLOYMENT.md) for the full guide.
 
 | Issue | Severity | Status |
 |-------|----------|--------|
-| `WaitlistForm.test.tsx` — 6 tests failing due to React 19 + RTL async timing | Medium | Pre-existing; non-blocking |
 | `flatted < 3.4.0` — transitive DoS vulnerability via Next.js dependency | High | No fix available without major Next.js upgrade; CI runs with `--audit-level=high --continue-on-error` |
-| `lib/supabase-server.ts` — orphaned legacy file, never imported | Low | Pending deletion approval (see `docs/DEAD-CODE-TRIAGE.md`) |
 
 ---
 

@@ -2,12 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import WaitlistForm from '@/components/WaitlistForm';
 
-// Mock fetch globally
-global.fetch = vi.fn();
-
 describe('WaitlistForm', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
+    global.fetch = vi.fn();
   });
 
   it('should render form fields', () => {
@@ -20,19 +18,13 @@ describe('WaitlistForm', () => {
   });
 
   it('should show error for invalid email', async () => {
-    // Mock API error response
-    (global.fetch as any).mockResolvedValueOnce({
-      ok: false,
-      json: async () => ({ error: 'Invalid email address' }),
-    });
-
     render(<WaitlistForm />);
     
     const emailInput = screen.getByPlaceholderText('you@company.com');
-    const submitButton = screen.getByText('Join Waitlist');
 
     fireEvent.change(emailInput, { target: { value: 'invalid' } });
-    fireEvent.click(submitButton);
+    // Use fireEvent.submit on the form directly to bypass native HTML5 email validation
+    fireEvent.submit(emailInput.closest('form') as HTMLFormElement);
 
     await waitFor(() => {
       expect(screen.getByText(/Invalid email/i)).toBeInTheDocument();
