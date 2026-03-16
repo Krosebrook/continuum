@@ -23,7 +23,11 @@ This file provides context for Claude Code when working on the Continuum project
 continuum/
 ├── app/                      # Next.js App Router
 │   ├── api/
-│   │   └── waitlist/         # Waitlist API endpoint
+│   │   ├── waitlist/         # Waitlist API endpoint
+│   │   └── cron/health/      # Health check cron endpoint
+│   ├── (auth)/               # Auth route group (login, signup, forgot/reset password)
+│   ├── auth/callback/        # OAuth / magic-link callback handler
+│   ├── dashboard/            # Protected dashboard pages (opportunities, ICPs, analytics, settings)
 │   ├── unsubscribe/          # Unsubscribe page
 │   ├── globals.css           # Tailwind + custom styles
 │   ├── layout.tsx            # Root layout with metadata
@@ -31,11 +35,19 @@ continuum/
 ├── components/               # React components
 │   ├── Hero.tsx              # Hero section with value props
 │   ├── WaitlistForm.tsx      # Form with validation
-│   └── Footer.tsx            # Footer with links
+│   ├── Footer.tsx            # Footer with links
+│   ├── ErrorBoundary.tsx     # Error boundary wrapper
+│   ├── LoadingSpinner.tsx    # Loading spinner
+│   └── ProtectedRoute.tsx    # Auth guard component
 ├── lib/                      # Utility libraries
 │   ├── emails/               # Email templates
+│   ├── hooks/                # React hooks (useAuth)
 │   ├── schemas/              # Zod validation schemas
-│   └── supabase-server.ts    # Supabase server client
+│   ├── supabase/             # Supabase clients (server, client, middleware)
+│   └── types/                # TypeScript types (database, etc.)
+├── __tests__/                # Vitest unit & integration tests
+│   ├── api/waitlist.test.ts  # API route tests (10 tests)
+│   └── components/WaitlistForm.test.tsx  # Component tests (7 tests)
 ├── supabase/                 # Database files
 │   └── schema.sql            # Database schema
 └── public/                   # Static assets
@@ -54,14 +66,20 @@ npm start             # Start production server
 # Code Quality
 npm run lint          # Run ESLint
 npm run type-check    # Run TypeScript type checking (tsc --noEmit)
+
+# Testing
+npm test              # Run all 17 Vitest unit tests
+npm run test:coverage # Coverage report
+npm run test:e2e      # Playwright E2E tests
 ```
 
 ## Key Files
 
 - `app/api/waitlist/route.ts` - Main API endpoint for waitlist signups
 - `components/WaitlistForm.tsx` - Client-side form with validation
-- `lib/schemas/` - Zod schemas for input validation
-- `lib/supabase-server.ts` - Server-side Supabase client
+- `lib/schemas/waitlist.ts` - Zod schema for input validation (shared by client and server)
+- `lib/supabase/server.ts` - Server-side Supabase client
+- `middleware.ts` - Auth session handling and route protection
 - `supabase/schema.sql` - Database schema (run in Supabase SQL Editor)
 
 ## Environment Variables
@@ -89,10 +107,17 @@ Optional:
 
 ## Testing
 
-Currently no automated tests. When adding tests:
-- Unit tests for Zod schemas
-- Integration tests for API routes
-- E2E tests for form submission flow
+17 unit tests across 2 test suites (all passing):
+
+```bash
+npm test              # Run all unit tests with Vitest
+npm run test:coverage # Coverage report
+npm run test:e2e      # Playwright E2E tests
+```
+
+Test files:
+- `__tests__/api/waitlist.test.ts` — 10 API integration tests
+- `__tests__/components/WaitlistForm.test.tsx` — 7 component tests
 
 ## Documentation
 
